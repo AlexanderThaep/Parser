@@ -26,5 +26,6 @@ int error(char* message, int type);
 
 RE** parse(char* re, size_t len);
 boolState test(RE** stack, char* string, size_t len);
+boolState* bulkTest(RE** stack, char* string, size_t len);
 
 void debug(RE** parseStack, int level);

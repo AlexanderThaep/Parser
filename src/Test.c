@@ -102,3 +102,29 @@ boolState test(RE **stack, char *string, size_t len)
     returnState.match = 1;
     return returnState;
 }
+
+boolState* bulkTest(RE** stack, char* string, size_t len) {
+    boolState* states = (boolState*) malloc(sizeof(boolState) * DEFAULT_STACK_SIZE);
+    if (states == (boolState*) NULL) { return (boolState*) NULL; }
+
+    int stateIndex = 0;
+    size_t curIndex = 0;
+
+    while (curIndex < len) {
+        boolState state = test(stack, string + curIndex, len - curIndex);
+
+        if (state.match == 0 && state.consumed == 0) {
+            curIndex++;
+        } else {
+            printf("Match at: %d\n", curIndex);
+
+            states[stateIndex].match = 1;
+            states[stateIndex].consumed = curIndex;
+
+            curIndex += state.consumed;
+            stateIndex++;
+        }
+    }
+
+    return states;
+}
