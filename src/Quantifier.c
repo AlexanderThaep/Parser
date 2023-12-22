@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <RegExp.h>
 #include <Quantifier.h>
@@ -15,15 +16,18 @@ int feedQuantifier(RE* regular_expression, size_t i, char* re, size_t len) {
 
     while (i < len) {
         if (re[i] <= ASCII_9 && re[i] >= ASCII_0) {
-            (*place) = ((*place)*10) + re[i];
+            (*place) = ((*place)*10) + (re[i] - 48);
         } else if (re[i] == ASCII_COMMA) {
             place = &max;
             max = 0;
-        } else if (re[i] == '}') { break; }
+        } else if (re[i] == '}') { i++; break; }
         i++;
     }
 
     if (max < 0) { max = min; }
-    regular_expression->quantifier += (max << 16) + (min << 8);
+    regular_expression->quantifier.type = MIN_MAX;
+    regular_expression->quantifier.max = max;
+    regular_expression->quantifier.min = min;
+    
     return i - initial;
 }

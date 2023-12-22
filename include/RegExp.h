@@ -14,12 +14,15 @@
 
 #define DEFAULT_STACK_SIZE    64
 
-#define THIRD_INT_BYTE(word) ((word >> 16) && 0xff)
-#define SECOND_INT_BYTE(word) ((word >> 8) && 0xff)
+struct Quantifier {
+    int type;
+    int min;
+    int max;
+};
 
 typedef struct RE {
     int type;
-    int quantifier;
+    struct Quantifier quantifier;
     int data;
     struct RE** child_stack;
 } RE;

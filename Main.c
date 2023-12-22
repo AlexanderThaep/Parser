@@ -3,10 +3,10 @@
 #include <RegExp.h>
 
 int main(int argc, char** args) {
-    char* regex = "(en){1}";
+    char* regex = "(en){0}";
     char* testex = "   sentencesentence";
 
-    RE** parseStack = parse(regex, 7);
+    RE** parseStack = parse(regex, 8);
     debug(parseStack, 0);
 
     boolState stateTest = test(parseStack, testex, 20);

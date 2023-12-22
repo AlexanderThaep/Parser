@@ -8,7 +8,7 @@ RE* createRegularExpression(int type, int quantifier, char data) {
     if (regular_expression == (RE*) NULL) { return (RE*) NULL; }
 
     regular_expression->type = type;
-    regular_expression->quantifier = quantifier;
+    regular_expression->quantifier.type = quantifier;
     regular_expression->data = data;
     regular_expression->child_stack = (RE**) NULL;
 
@@ -60,7 +60,7 @@ void debug(RE** parseStack, int level) {
         for (int i = 0; i <= parseStack[0]->type; i++) {
             printf("LEVEL: %d\n", level);
             printf("--TYPE: %d\n", parseStack[i]->type);
-            printf("--QUANTIFIER: %d\n", parseStack[i]->quantifier);
+            printf("--QUANTIFIER: %d\n", parseStack[i]->quantifier.type);
             printf("--DATA: %d\n", parseStack[i]->data);
             if (parseStack[i]->child_stack != (RE**) NULL) {
                 debug(parseStack[i]->child_stack, level + 1);
@@ -89,16 +89,16 @@ RE** parse(char* re, size_t len) {
                 continue;
             case '?':
                 lastRE = peekStack(peekStack(parse_stack)->child_stack);
-                if (lastRE == (RE*) NULL || lastRE->quantifier != EXACTLY_ONE) {
+                if (lastRE == (RE*) NULL || lastRE->quantifier.type != EXACTLY_ONE) {
                     error("? Quantifier has to follow an exactly one", 2);
                 }
-                lastRE->quantifier = ZERO_OR_ONE;
+                lastRE->quantifier.type = ZERO_OR_ONE;
                 i++;
 
                 continue;
             case '+':
                 lastRE = peekStack(peekStack(parse_stack)->child_stack);
-                if (lastRE == (RE*) NULL || lastRE->quantifier != EXACTLY_ONE) {
+                if (lastRE == (RE*) NULL || lastRE->quantifier.type != EXACTLY_ONE) {
                     error("+ Quantifier has to follow an exactly one", 2);
                 }
                 regular_expression = createRegularExpression(lastRE->type, ZERO_OR_MORE, lastRE->data);
@@ -110,10 +110,10 @@ RE** parse(char* re, size_t len) {
                 continue;
             case '*':
                 lastRE = peekStack(peekStack(parse_stack)->child_stack);
-                if (lastRE == (RE*) NULL || lastRE->quantifier != EXACTLY_ONE) {
+                if (lastRE == (RE*) NULL || lastRE->quantifier.type != EXACTLY_ONE) {
                     error("* Quantifier has to follow an exactly one", 2);
                 }
-                lastRE->quantifier = ZERO_OR_MORE;
+                lastRE->quantifier.type = ZERO_OR_MORE;
                 i++;
 
                 continue;
@@ -133,7 +133,7 @@ RE** parse(char* re, size_t len) {
                 break;
             case '{':
                 lastRE = peekStack(peekStack(parse_stack)->child_stack);
-                if (lastRE == (RE*) NULL || lastRE->quantifier != EXACTLY_ONE) {
+                if (lastRE == (RE*) NULL || lastRE->quantifier.type != EXACTLY_ONE) {
                     error("Bracketed quantifier has to follow an exactly one", 2);
                 }
 

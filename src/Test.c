@@ -43,7 +43,7 @@ boolState test(RE **stack, char *string, size_t len)
     {
         boolState state;
 
-        switch (current_state->quantifier & 0xff)
+        switch (current_state->quantifier.type)
         {
         case EXACTLY_ONE:
             state = stateMatchesStringAtIndex(current_state, string, len, i);
@@ -91,38 +91,43 @@ boolState test(RE **stack, char *string, size_t len)
             }
             continue;
         case MIN_MAX:
-        {
-            int matches = 0;
-            char max = THIRD_INT_BYTE(current_state->quantifier);
-            char min = SECOND_INT_BYTE(current_state->quantifier);
-
-            while (matches < max)
-            {           
-                if (i >= len)
-                {
-                    current_state = stack[++j];
-                    break;
-                }
-
-                state = stateMatchesStringAtIndex(current_state, string, len, i);
-                if (state.match == 0 || state.consumed == 0)
-                {
-                    current_state = stack[++j];
-                    break;
-                }
-
-                matches++;
-                i += state.consumed;
-            }
-
-            if (matches < min)
             {
-                boolState returnState;
-                returnState.consumed = 0;
-                returnState.match = 0;
-                return returnState;
+                int matches = 0;
+                int max = current_state->quantifier.max;
+                int min = current_state->quantifier.min;
+
+                if ((max + min) == 0) {                         
+                    current_state = stack[++j];
+                    break;
+                }
+
+                while (matches < max)
+                {           
+                    if (i >= len)
+                    {
+                        current_state = stack[++j];
+                        break;
+                    }
+
+                    state = stateMatchesStringAtIndex(current_state, string, len, i);
+                    if (state.match == 0 || state.consumed == 0)
+                    {
+                        current_state = stack[++j];
+                        break;
+                    }
+
+                    matches++;
+                    i += state.consumed;
+                }
+
+                if (matches < min)
+                {
+                    boolState returnState;
+                    returnState.consumed = 0;
+                    returnState.match = 0;
+                    return returnState;
+                }
             }
-        }
             continue;
         default:
             error("Unsupported quantifier", 2);
