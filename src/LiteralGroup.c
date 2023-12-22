@@ -1,26 +1,34 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <RegExp.h>
 
-#define ASCII_FSLASH 92
-#define ASCII_DASH 45
+#define ASCII_FSLASH    92
+#define ASCII_DASH      45
+#define ASCII_CARET     94
+
+#define ASCII_TABLE     256
 
 void activateLiteral(char* table, char literal, char last, int* addr_active_ranging) {
     int index = (int) literal;
     if ((*addr_active_ranging) == 1) {
-        for (int i = last; i < literal; i++) {
-            table[i] = 1;
+        for (int i = last; i <= literal; i++) {
+            table[i] = 1 - table[i];
         }
         (*addr_active_ranging) = 0;
         return;
     }
-    table[index] = 1;
+    table[index] = 1 - table[index];
 }
 
 int feedLiterals(RE* regular_expression, size_t i, char* re, size_t len) {
 
-    char* table = (char*) calloc(255, sizeof(char));
+    char* table = (char*) calloc(ASCII_TABLE, sizeof(char));
     if (table == (char*) NULL) { return 0; }
+
+    if (re[i] == '^') {
+        memset(table, 1, sizeof(char) * ASCII_TABLE);
+    }
 
     char last = NULL;
     int active_ranging = 0;
@@ -49,6 +57,7 @@ int feedLiterals(RE* regular_expression, size_t i, char* re, size_t len) {
         i++;
     }
 
+    table[0] = 0;
     regular_expression->table = table;
     
     return i;
