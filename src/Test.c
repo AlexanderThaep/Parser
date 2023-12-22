@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <RegTypes.h>
+#include <RegExp.h>
 
 boolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
 {
@@ -43,7 +43,7 @@ boolState test(RE **stack, char *string, size_t len)
     {
         boolState state;
 
-        switch (current_state->quantifier)
+        switch (current_state->quantifier & 0xff)
         {
         case EXACTLY_ONE:
             state = stateMatchesStringAtIndex(current_state, string, len, i);
@@ -89,9 +89,41 @@ boolState test(RE **stack, char *string, size_t len)
 
                 i += state.consumed;
             }
-
             continue;
+        case MIN_MAX:
+        {
+            int matches = 0;
+            char max = THIRD_INT_BYTE(current_state->quantifier);
+            char min = SECOND_INT_BYTE(current_state->quantifier);
 
+            while (matches < max)
+            {           
+                if (i >= len)
+                {
+                    current_state = stack[++j];
+                    break;
+                }
+
+                state = stateMatchesStringAtIndex(current_state, string, len, i);
+                if (state.match == 0 || state.consumed == 0)
+                {
+                    current_state = stack[++j];
+                    break;
+                }
+
+                matches++;
+                i += state.consumed;
+            }
+
+            if (matches < min)
+            {
+                boolState returnState;
+                returnState.consumed = 0;
+                returnState.match = 0;
+                return returnState;
+            }
+        }
+            continue;
         default:
             error("Unsupported quantifier", 2);
         }
@@ -116,7 +148,7 @@ boolState* bulkTest(RE** stack, char* string, size_t len) {
         if (state.match == 0 && state.consumed == 0) {
             curIndex++;
         } else {
-            printf("Match at: %d\n", curIndex);
+            printf("Match at: %zu\n", curIndex);
 
             states[stateIndex].match = 1;
             states[stateIndex].consumed = curIndex;

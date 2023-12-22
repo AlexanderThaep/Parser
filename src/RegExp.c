@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <RegTypes.h>
+#include <RegExp.h>
+#include <Quantifier.h>
 
 RE* createRegularExpression(int type, int quantifier, char data) {
     RE* regular_expression = (RE*) malloc(sizeof(RE));
@@ -127,7 +128,16 @@ RE** parse(char* re, size_t len) {
                 if (regular_expression == (RE*) NULL) {
                     error("Too many ) parentheses!", 2);
                 }
+
                 pushStack(peekStack(parse_stack)->child_stack, regular_expression);
+                break;
+            case '{':
+                lastRE = peekStack(peekStack(parse_stack)->child_stack);
+                if (lastRE == (RE*) NULL || lastRE->quantifier != EXACTLY_ONE) {
+                    error("Bracketed quantifier has to follow an exactly one", 2);
+                }
+
+                i += feedQuantifier(lastRE, i, re, len);
                 break;
             case '\\':
                 if (i++ < len) {
