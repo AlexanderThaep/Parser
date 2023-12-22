@@ -9,9 +9,10 @@ RE* createRegularExpression(int type, int quantifier, char data) {
     if (regular_expression == (RE*) NULL) { return (RE*) NULL; }
 
     regular_expression->type = type;
-    regular_expression->quantifier.type = quantifier;
     regular_expression->data = data;
+    regular_expression->quantifier.type = quantifier;
     regular_expression->child_stack = (RE**) NULL;
+    regular_expression->table = (char*) NULL;
 
     return regular_expression;
 }
@@ -63,6 +64,7 @@ void debug(RE** parseStack, int level) {
             printf("--TYPE: %d\n", parseStack[i]->type);
             printf("--QUANTIFIER: %d\n", parseStack[i]->quantifier.type);
             printf("--DATA: %d\n", parseStack[i]->data);
+            printf("--CHILDSTACK: %p\n", parseStack[i]->child_stack);
             if (parseStack[i]->child_stack != (RE**) NULL) {
                 debug(parseStack[i]->child_stack, level + 1);
             } 
@@ -142,8 +144,9 @@ RE** parse(char* re, size_t len) {
                 break;
             case '[':
                 regular_expression = createRegularExpression(LITERAL_GROUP, EXACTLY_ONE, re[i]);
-                i = feedLiterals(lastRE, i, re, len);
                 pushStack(peekStack(parse_stack)->child_stack, regular_expression);
+
+                i = feedLiterals(regular_expression, i + 1, re, len);
                 break;
             case '\\':
                 if (i++ < len) {

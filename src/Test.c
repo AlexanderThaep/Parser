@@ -22,6 +22,10 @@ boolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
             break;
         case GROUP:
             return test(state->child_stack, &(string[i]), len - i);
+        case LITERAL_GROUP:
+            returnState.match = (state->table[string[i]] == 1) ? 1 : returnState.match;
+            returnState.consumed = returnState.match;
+            break;
         default:
             error("Unsupported state type", 2);
             break;
@@ -154,7 +158,7 @@ boolState* match(RE** stack, char* string, size_t len) {
             curIndex += state.consumed;
             states[stateIndex].end = curIndex;
 
-            printf("%.*s Match/End at: %zu/%zu\n", 
+            printf("%.*s Match/End at: %d/%d\n", 
             states[stateIndex].end - states[stateIndex].consumed, 
             string + states[stateIndex].consumed, 
             states[stateIndex].consumed, 

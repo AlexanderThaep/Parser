@@ -23,9 +23,10 @@ struct Quantifier {
 
 typedef struct RE {
     int type;
-    struct Quantifier quantifier;
     int data;
+    struct Quantifier quantifier;
     struct RE** child_stack;
+    char* table;
 } RE;
 
 typedef struct boolState {
