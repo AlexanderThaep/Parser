@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <RegTypes.h>
+#include <RegExp.h>
 
 int main(int argc, char** args) {
-    char* regex = "(en).?";
+    char* regex = "(en){1}";
     char* testex = "   sentencesentence";
 
     RE** parseStack = parse(regex, 7);
