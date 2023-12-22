@@ -25,9 +25,11 @@ However, this implementation seeks to allow for the minimum that any user famili
 
 <ul>
   
-  Literal sets
+  ~~Literal sets~~
+
+  ~~Caret negation~~
   
   Backtracking
   
-  Extra features like carets, etc.
+  Extra features...
 </ul>
