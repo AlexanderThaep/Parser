@@ -89,6 +89,7 @@ boolState test(RE **stack, char *string, size_t len)
 
                 i += state.consumed;
             }
+<<<<<<< HEAD
             continue;
         case MIN_MAX:
         {
@@ -124,6 +125,42 @@ boolState test(RE **stack, char *string, size_t len)
             }
         }
             continue;
+=======
+            continue;
+        case MIN_MAX:
+            int matches = 0;
+            char max = THIRD_INT_BYTE(current_state->quantifier);
+            char min = SECOND_INT_BYTE(current_state->quantifier);
+
+            while (matches < max)
+            {           
+                if (i >= len)
+                {
+                    current_state = stack[++j];
+                    break;
+                }
+
+                state = stateMatchesStringAtIndex(current_state, string, len, i);
+                if (state.match == 0 || state.consumed == 0)
+                {
+                    current_state = stack[++j];
+                    break;
+                }
+
+                matches++;
+                i += state.consumed;
+            }
+
+            if (matches < min)
+            {
+                boolState returnState;
+                returnState.consumed = 0;
+                returnState.match = 0;
+                return returnState;
+            }
+
+            continue;
+>>>>>>> b929f09c06b3e966c10e6b27a245501eca73b82d
         default:
             error("Unsupported quantifier", 2);
         }
