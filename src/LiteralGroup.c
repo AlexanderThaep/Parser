@@ -6,6 +6,7 @@
 #define ASCII_DASH 45
 
 void activateLiteral(char* table, char literal, char last, int* addr_active_ranging) {
+    int index = (int) literal;
     if ((*addr_active_ranging) == 1) {
         for (int i = last; i < literal; i++) {
             table[i] = 1;
@@ -13,12 +14,12 @@ void activateLiteral(char* table, char literal, char last, int* addr_active_rang
         (*addr_active_ranging) = 0;
         return;
     }
-    table[literal] = 1;
+    table[index] = 1;
 }
 
 int feedLiterals(RE* regular_expression, size_t i, char* re, size_t len) {
 
-    char* table = (char*) calloc(sizeof(char) * 255, 0);
+    char* table = (char*) calloc(255, sizeof(char));
     if (table == (char*) NULL) { return 0; }
 
     char last = NULL;
