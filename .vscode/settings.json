@@ -4,11 +4,6 @@
             "cwd": "/Users/o_alex_t/Documents/C/Parser",
             "binaryPath": "/Users/o_alex_t/Documents/C/Parser/Main",
             "binaryArgs": []
-        },
-        {
-            "cwd": "/Users/o_alex_t/Documents/C/Parser",
-            "binaryPath": "/Users/o_alex_t/Documents/C/Parser/Main,",
-            "binaryArgs": []
         }
     ],
     "files.associations": {
