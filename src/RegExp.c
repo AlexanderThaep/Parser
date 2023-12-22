@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <RegExp.h>
 #include <Quantifier.h>
+#include <LiteralGroup.h>
 
 RE* createRegularExpression(int type, int quantifier, char data) {
     RE* regular_expression = (RE*) malloc(sizeof(RE));
@@ -89,6 +90,7 @@ RE** parse(char* re, size_t len) {
                 continue;
             case '?':
                 lastRE = peekStack(peekStack(parse_stack)->child_stack);
+                printf("%d\n", lastRE->quantifier.type);
                 if (lastRE == (RE*) NULL || lastRE->quantifier.type != EXACTLY_ONE) {
                     error("? Quantifier has to follow an exactly one", 2);
                 }
@@ -101,12 +103,11 @@ RE** parse(char* re, size_t len) {
                 if (lastRE == (RE*) NULL || lastRE->quantifier.type != EXACTLY_ONE) {
                     error("+ Quantifier has to follow an exactly one", 2);
                 }
-                regular_expression = createRegularExpression(lastRE->type, ZERO_OR_MORE, lastRE->data);
-                regular_expression->child_stack = lastRE->child_stack;
+                lastRE->quantifier.type = MIN_MAX;
+                lastRE->quantifier.max = INT16_MAX;
+                lastRE->quantifier.min = 1;
                 
-                pushStack(peekStack(parse_stack)->child_stack, regular_expression);
                 i++;
-
                 continue;
             case '*':
                 lastRE = peekStack(peekStack(parse_stack)->child_stack);
@@ -137,7 +138,12 @@ RE** parse(char* re, size_t len) {
                     error("Bracketed quantifier has to follow an exactly one", 2);
                 }
 
-                i += feedQuantifier(lastRE, i, re, len);
+                i = feedQuantifier(lastRE, i, re, len);
+                break;
+            case '[':
+                regular_expression = createRegularExpression(LITERAL_GROUP, EXACTLY_ONE, re[i]);
+                i = feedLiterals(lastRE, i, re, len);
+                pushStack(peekStack(parse_stack)->child_stack, regular_expression);
                 break;
             case '\\':
                 if (i++ < len) {

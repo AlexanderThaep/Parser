@@ -96,12 +96,7 @@ boolState test(RE **stack, char *string, size_t len)
                 int max = current_state->quantifier.max;
                 int min = current_state->quantifier.min;
 
-                if ((max + min) == 0) {                         
-                    current_state = stack[++j];
-                    break;
-                }
-
-                while (matches < max)
+                while (1)
                 {           
                     if (i >= len)
                     {
@@ -120,7 +115,7 @@ boolState test(RE **stack, char *string, size_t len)
                     i += state.consumed;
                 }
 
-                if (matches < min)
+                if (matches < min || matches > max)
                 {
                     boolState returnState;
                     returnState.consumed = 0;
@@ -140,8 +135,8 @@ boolState test(RE **stack, char *string, size_t len)
     return returnState;
 }
 
-boolState* bulkTest(RE** stack, char* string, size_t len) {
-    boolState* states = (boolState*) malloc(sizeof(boolState) * DEFAULT_STACK_SIZE);
+boolState* match(RE** stack, char* string, size_t len) {
+    boolState* states = (boolState*) malloc(sizeof(boolState) * DEFAULT_STACK_SIZE * 2);
     if (states == (boolState*) NULL) { return (boolState*) NULL; }
 
     int stateIndex = 0;
@@ -153,13 +148,23 @@ boolState* bulkTest(RE** stack, char* string, size_t len) {
         if (state.match == 0 && state.consumed == 0) {
             curIndex++;
         } else {
-            printf("Match at: %zu\n", curIndex);
-
             states[stateIndex].match = 1;
             states[stateIndex].consumed = curIndex;
 
             curIndex += state.consumed;
+            states[stateIndex].end = curIndex;
+
+            printf("%.*s Match/End at: %zu/%zu\n", 
+            states[stateIndex].end - states[stateIndex].consumed, 
+            string + states[stateIndex].consumed, 
+            states[stateIndex].consumed, 
+            states[stateIndex].end);
+
             stateIndex++;
+
+            if (state.consumed == 0) {
+                curIndex++;
+            }
         }
     }
 

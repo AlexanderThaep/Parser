@@ -8,7 +8,6 @@
 #define ASCII_COMMA 44
 
 int feedQuantifier(RE* regular_expression, size_t i, char* re, size_t len) {
-    int initial = i;
     int max = -1;
     int min = 0;
 
@@ -20,14 +19,16 @@ int feedQuantifier(RE* regular_expression, size_t i, char* re, size_t len) {
         } else if (re[i] == ASCII_COMMA) {
             place = &max;
             max = 0;
-        } else if (re[i] == '}') { i++; break; }
+        } else if (re[i] == '}') { break; }
         i++;
     }
 
     if (max < 0) { max = min; }
+    if (max < min) { max = INT16_MAX; }
+
     regular_expression->quantifier.type = MIN_MAX;
     regular_expression->quantifier.max = max;
     regular_expression->quantifier.min = min;
     
-    return i - initial;
+    return i;
 }
