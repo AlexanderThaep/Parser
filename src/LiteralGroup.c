@@ -30,7 +30,7 @@ int feedLiterals(RE* regular_expression, size_t i, char* re, size_t len) {
         memset(table, 1, sizeof(char) * ASCII_TABLE);
     }
 
-    char last = NULL;
+    char last = '\0';
     int active_ranging = 0;
 
     while (i < len) {

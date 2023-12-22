@@ -23,7 +23,7 @@ boolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
         case GROUP:
             return test(state->child_stack, &(string[i]), len - i);
         case LITERAL_GROUP:
-            returnState.match = (state->table[string[i]] == 1) ? 1 : returnState.match;
+            returnState.match = (state->table[(int) string[i]] == 1) ? 1 : returnState.match;
             returnState.consumed = returnState.match;
             break;
         default:
