@@ -29,7 +29,7 @@ However, this implementation seeks to allow for the minimum that any user famili
 
   ~~Caret negation~~
   
-  Backtracking
+  ~~Backtracking~~
   
   Extra features...
 </ul>
