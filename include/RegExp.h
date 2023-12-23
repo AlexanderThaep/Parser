@@ -16,23 +16,23 @@
 #define DEFAULT_STACK_SIZE    64
 
 struct Quantifier {
-    int type;
-    int min;
-    int max;
+    unsigned int type;
+    unsigned int min:8;
+    unsigned int max:8;
 };
 
 typedef struct RE {
-    int type;
-    int data;
-    struct Quantifier quantifier;
-    struct RE** child_stack;
+    unsigned int type:8;
+    unsigned int data:8;
     char* table;
+    struct RE** child_stack;
+    struct Quantifier quantifier;
 } RE;
 
 typedef struct boolState {
-    int consumed;
-    int match;
-    int end;
+    unsigned int consumed;
+    unsigned int match;
+    unsigned int end;
 } boolState;
 
 int error(char* message, int type);
