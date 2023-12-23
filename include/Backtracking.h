@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <RegExp.h>
 
+#define BOOLSTACK_SIZE 512
+
 typedef struct BOOLSTACK {
     unsigned int index;
     unsigned int max;

@@ -1,6 +1,5 @@
 #if !defined(REGEXP)
 #define REGEXP
-
 #define NONE               0x000
 
 #define WILDCARD           0x001
@@ -13,10 +12,18 @@
 #define ZERO_OR_MORE       0x003
 #define MIN_MAX            0x004
 
+#define POSSESSIVE         0x001
+#define LAZY               0x002
+
 #define DEFAULT_STACK_SIZE    64
 
+#define ASCII_9     58
+#define ASCII_0     48
+#define ASCII_COMMA 44
+
 struct Quantifier {
-    unsigned int type;
+    unsigned int type:8;
+    unsigned int modifier:8;
     unsigned int min:8;
     unsigned int max:8;
 };
@@ -42,5 +49,10 @@ boolState test(RE** stack, char* string, size_t len);
 boolState* match(RE** stack, char* string, size_t len);
 
 void debug(RE** parseStack, int level);
+
+int feedQuantifier(RE* regular_expression, size_t i, char* re, size_t len);
+
+#include <Backtracking.h>
+#include <LiteralGroup.h>
 
 #endif

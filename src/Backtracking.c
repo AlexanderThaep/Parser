@@ -1,9 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <RegExp.h>
-#include <Backtracking.h>
-
-#define BOOLSTACK_SIZE 256
 
 BOOLSTACK* createBoolStack() {
     BOOLSTACK* bool_stack = (BOOLSTACK*) malloc(sizeof(BOOLSTACK));
@@ -30,6 +27,8 @@ BOOLSTACK* pushBoolStack(BOOLSTACK* bool_stack, boolState state) {
         return bool_stack;
     }
     error("Bool stack overflow!", 2);
+
+    return (BOOLSTACK*) NULL;
 };
 
 boolState* popBoolStack(BOOLSTACK* bool_stack) {

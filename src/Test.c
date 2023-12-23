@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <RegExp.h>
-#include <Backtracking.h>
 
 boolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
 {
@@ -84,7 +83,7 @@ boolState test(RE **stack, char *string, size_t len)
             state.end = i;
             i += state.consumed;
 
-            pushBoolStack(bool_stack, state);
+            if (current_state->quantifier.modifier != POSSESSIVE) { pushBoolStack(bool_stack, state); }
 
             current_state = stack[++j];
             continue;
@@ -107,7 +106,7 @@ boolState test(RE **stack, char *string, size_t len)
                 state.end = i;
                 i += state.consumed;
 
-                pushBoolStack(bool_stack, state);
+                if (current_state->quantifier.modifier != POSSESSIVE) { pushBoolStack(bool_stack, state); }
             }
             continue;
         case MIN_MAX:
@@ -138,7 +137,7 @@ boolState test(RE **stack, char *string, size_t len)
 
                     if (matches > min)
                     {
-                        pushBoolStack(bool_stack, state);
+                        if (current_state->quantifier.modifier != POSSESSIVE) { pushBoolStack(bool_stack, state); }
                     }
                 }
 

@@ -1,8 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <RegExp.h>
-#include <Quantifier.h>
-#include <LiteralGroup.h>
 
 RE* createRegularExpression(int type, int quantifier, char data) {
     RE* regular_expression = (RE*) malloc(sizeof(RE));
@@ -92,22 +90,27 @@ RE** parse(char* re, size_t len) {
                 continue;
             case '?':
                 lastRE = peekStack(peekStack(parse_stack)->child_stack);
-                printf("%d\n", lastRE->quantifier.type);
-                if (lastRE == (RE*) NULL || lastRE->quantifier.type != EXACTLY_ONE) {
-                    error("? Quantifier has to follow an exactly one", 2);
+                if (lastRE == (RE*) NULL || lastRE->quantifier.type == NONE) {
+                    error("? Quantifier has to follow something", 2);
                 }
-                lastRE->quantifier.type = ZERO_OR_ONE;
+                if (lastRE->quantifier.type == EXACTLY_ONE) {
+                    lastRE->quantifier.type = ZERO_OR_ONE; 
+                }
+                lastRE->quantifier.modifier = LAZY;
+                
                 i++;
-
                 continue;
             case '+':
                 lastRE = peekStack(peekStack(parse_stack)->child_stack);
-                if (lastRE == (RE*) NULL || lastRE->quantifier.type != EXACTLY_ONE) {
-                    error("+ Quantifier has to follow an exactly one", 2);
+                if (lastRE == (RE*) NULL || lastRE->quantifier.type == NONE) {
+                    error("+ Quantifier has to follow something", 2);
                 }
-                lastRE->quantifier.type = MIN_MAX;
-                lastRE->quantifier.max = INT16_MAX;
-                lastRE->quantifier.min = 1;
+                if (lastRE->quantifier.type == EXACTLY_ONE) {
+                    lastRE->quantifier.type = MIN_MAX;
+                    lastRE->quantifier.max = INT8_MAX;
+                    lastRE->quantifier.min = 1;
+                }
+                lastRE->quantifier.modifier = POSSESSIVE;
                 
                 i++;
                 continue;

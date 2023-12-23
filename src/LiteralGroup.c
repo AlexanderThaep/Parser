@@ -3,12 +3,6 @@
 #include <string.h>
 #include <RegExp.h>
 
-#define ASCII_FSLASH    92
-#define ASCII_DASH      45
-#define ASCII_CARET     94
-
-#define ASCII_TABLE     256
-
 void activateLiteral(char* table, char literal, char last, int* addr_active_ranging) {
     int index = (int) literal;
     if ((*addr_active_ranging) == 1) {

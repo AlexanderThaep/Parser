@@ -1,11 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <RegExp.h>
-#include <Quantifier.h>
-
-#define ASCII_9     58
-#define ASCII_0     48
-#define ASCII_COMMA 44
 
 int feedQuantifier(RE* regular_expression, size_t i, char* re, size_t len) {
     int max = -1;
