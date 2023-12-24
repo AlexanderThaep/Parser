@@ -3,23 +3,31 @@
 #include <RegExp.h>
 
 int feedQuantifier(RE* regular_expression, size_t i, char* re, size_t len) {
-    int max = -1;
-    int min = 0;
+    unsigned int max = 0;
+    unsigned int min = 0;
 
-    int* place = &min;
+    unsigned int* place = &min;
+
+    short accessedMin = 0;
+    short accessedMax = 0;
 
     while (i < len) {
         if (re[i] <= ASCII_9 && re[i] >= ASCII_0) {
             (*place) = ((*place)*10) + (re[i] - 48);
+            if (place == &min) {
+                accessedMin = 1;
+            } else {
+                accessedMax = 1;
+            }
         } else if (re[i] == ASCII_COMMA) {
             place = &max;
-            max = 0;
         } else if (re[i] == '}') { break; }
         i++;
     }
 
-    if (max < 0) { max = min; }
-    if ( max <= min && place == &max ) { max = INT16_MAX; }
+    if (accessedMin == 0 && accessedMax == 0) { max = INT32_MAX; }
+    if (accessedMax == 0) { max = INT32_MAX; }
+    if (max < min) { max = INT32_MAX; }
 
     regular_expression->quantifier.type = MIN_MAX;
     regular_expression->quantifier.max = max;
