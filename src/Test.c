@@ -1,10 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <RegExp.h>
+#include <Backtracking.h>
 
-boolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
+BoolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
 {
-    boolState returnState;
+    BoolState returnState;
     returnState.consumed = 0;
     returnState.match = 0;
 
@@ -36,21 +37,21 @@ boolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
     return returnState;
 }
 
-boolState test(RE **stack, char *string, size_t len)
+BoolState test(RE **stack, char *string, size_t len)
 {
     int i = 0;
     int j = 0;
 
-    boolState returnState;
+    BoolState returnState;
     returnState.consumed = 0;
     returnState.match = 0;
 
-    BOOLSTACK *bool_stack = createBoolStack();
     RE *current_state = stack[++j];
+    BackStack *back_stack = createBackStack();
 
     while (current_state != (RE *)NULL)
     {
-        boolState state;
+        BoolState state;
 
         switch (current_state->quantifier.type)
         {
@@ -59,12 +60,16 @@ boolState test(RE **stack, char *string, size_t len)
 
             if (state.match == 0)
             {
-                int couldBacktrack = backtrack(bool_stack);
-                if (couldBacktrack == -1)
+                BackState* backState = backtrack(back_stack);
+                if (backState == (BackState*) NULL 
+                || backState->consumed < 1)
                 {
-                    return returnState;
+                    goto END;
                 }
-                i = couldBacktrack;
+                i = backState->index;
+                if (backState->backTrackState == LAZY) { i++; current_state = stack[--j]; }
+
+                free(backState);
                 continue;
             }
 
@@ -83,7 +88,8 @@ boolState test(RE **stack, char *string, size_t len)
             state.end = i;
             i += state.consumed;
 
-            if (current_state->quantifier.modifier != POSSESSIVE) { pushBoolStack(bool_stack, state); }
+            if (current_state->quantifier.modifier != POSSESSIVE) 
+            { pushBackStack(back_stack, state, current_state->quantifier.modifier); }
 
             current_state = stack[++j];
             continue;
@@ -105,8 +111,14 @@ boolState test(RE **stack, char *string, size_t len)
 
                 state.end = i;
                 i += state.consumed;
+                
+                if (current_state->quantifier.modifier != POSSESSIVE) 
+                { pushBackStack(back_stack, state, current_state->quantifier.modifier); }
 
-                if (current_state->quantifier.modifier != POSSESSIVE) { pushBoolStack(bool_stack, state); }
+                if (current_state->quantifier.modifier == LAZY) {
+                    current_state = stack[++j];
+                    break;
+                }
             }
             continue;
         case MIN_MAX:
@@ -137,18 +149,28 @@ boolState test(RE **stack, char *string, size_t len)
 
                     if (matches > min)
                     {
-                        if (current_state->quantifier.modifier != POSSESSIVE) { pushBoolStack(bool_stack, state); }
+                        if (current_state->quantifier.modifier != POSSESSIVE) 
+                        { pushBackStack(back_stack, state, current_state->quantifier.modifier); }
+
+                        if (current_state->quantifier.modifier == LAZY) {
+                            current_state = stack[++j];
+                            break;
+                        }
                     }
                 }
 
                 if (matches < min)
                 {
-                    int couldBacktrack = backtrack(bool_stack);
-                    if (couldBacktrack == -1)
+                    BackState* backState = backtrack(back_stack);
+                    if (backState == (BackState*) NULL 
+                    || backState->consumed < 1)
                     {
-                        return returnState;
+                        goto END;
                     }
-                    i = couldBacktrack;
+                    i = backState->index;
+                    if (backState->backTrackState == LAZY) { i++; current_state = stack[--j]; }
+
+                    free(backState);
                     continue;
                 }
                 current_state = stack[++j];
@@ -161,15 +183,17 @@ boolState test(RE **stack, char *string, size_t len)
 
     returnState.consumed = i;
     returnState.match = 1;
+END:
+    resetBackStack(back_stack);
     return returnState;
 }
 
-boolState *match(RE **stack, char *string, size_t len)
+BoolState *match(RE **stack, char *string, size_t len)
 {
-    boolState *states = (boolState *)malloc(sizeof(boolState) * DEFAULT_STACK_SIZE * 2);
-    if (states == (boolState *)NULL)
+    BoolState *states = (BoolState *)malloc(sizeof(BoolState) * DEFAULT_STACK_SIZE * 2);
+    if (states == (BoolState *)NULL)
     {
-        return (boolState *)NULL;
+        return (BoolState *)NULL;
     }
 
     int stateIndex = 0;
@@ -177,7 +201,7 @@ boolState *match(RE **stack, char *string, size_t len)
 
     while (curIndex < len)
     {
-        boolState state = test(stack, string + curIndex, len - curIndex);
+        BoolState state = test(stack, string + curIndex, len - curIndex);
 
         if (state.match == 0 && state.consumed == 0)
         {
@@ -191,7 +215,7 @@ boolState *match(RE **stack, char *string, size_t len)
             curIndex += state.consumed;
             states[stateIndex].end = curIndex;
 
-            printf("%.*s Match/End at: %d/%d\n",
+            printf("%.*s Start/End at: %d/%d\n",
                    states[stateIndex].end - states[stateIndex].consumed,
                    string + states[stateIndex].consumed,
                    states[stateIndex].consumed,

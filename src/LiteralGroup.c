@@ -15,7 +15,7 @@ void activateLiteral(char* table, char literal, char last, int* addr_active_rang
     table[index] = 1 - table[index];
 }
 
-int feedLiterals(RE* regular_expression, size_t i, char* re, size_t len) {
+int feedLiteral(RE* regular_expression, size_t i, char* re, size_t len) {
 
     char* table = (char*) calloc(ASCII_TABLE, sizeof(char));
     if (table == (char*) NULL) { return 0; }

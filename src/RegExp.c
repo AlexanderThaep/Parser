@@ -149,7 +149,7 @@ RE** parse(char* re, size_t len) {
                 regular_expression = createRegularExpression(LITERAL_GROUP, EXACTLY_ONE, re[i]);
                 pushStack(peekStack(parse_stack)->child_stack, regular_expression);
 
-                i = feedLiterals(regular_expression, i + 1, re, len);
+                i = feedLiteral(regular_expression, i + 1, re, len);
                 break;
             case '\\':
                 if (i++ < len) {

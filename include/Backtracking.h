@@ -2,15 +2,27 @@
 #include <stdio.h>
 #include <RegExp.h>
 
+#if !defined(BACKTRACK)
+#define BACKTRACK
+
 #define BOOLSTACK_SIZE 512
 
-typedef struct BOOLSTACK {
+typedef struct BackState {
+    unsigned int index;
+    unsigned int consumed;
+    unsigned short backTrackState;
+} BackState;
+
+typedef struct BackStack {
     unsigned int index;
     unsigned int max;
-    boolState** states;
-} BOOLSTACK;
+    struct BackState** states;
+} BackStack;
 
-BOOLSTACK* createBoolStack();
-BOOLSTACK* pushBoolStack(BOOLSTACK* bool_stack, boolState state);
-boolState* popBoolStack(BOOLSTACK* bool_stack);
-int backtrack(BOOLSTACK* bool_stack);
+BackStack* createBackStack();
+void resetBackStack(BackStack* stack);
+BackStack* pushBackStack(BackStack* back_stack, BoolState state, unsigned short backTrackState);
+BackState* popBackStack(BackStack* back_stack);
+BackState* backtrack(BackStack* back_stack);
+
+#endif

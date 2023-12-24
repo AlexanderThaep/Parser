@@ -1,54 +1,60 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <RegExp.h>
+#include <Backtracking.h>
 
-BOOLSTACK* createBoolStack() {
-    BOOLSTACK* bool_stack = (BOOLSTACK*) malloc(sizeof(BOOLSTACK));
-    if (bool_stack == (BOOLSTACK*) NULL) { return bool_stack; }
+BackStack* createBackStack() {
+    BackStack* back_stack = (BackStack*) malloc(sizeof(BackStack));
+    if (back_stack == (BackStack*) NULL) { return back_stack; }
 
-    bool_stack->index = 0;
-    bool_stack->max = BOOLSTACK_SIZE;
-    bool_stack->states = (boolState**) malloc(sizeof(boolState*) * BOOLSTACK_SIZE);
+    back_stack->index = 0;
+    back_stack->max = BOOLSTACK_SIZE;
+    back_stack->states = (BackState**) malloc(sizeof(BackState*) * BOOLSTACK_SIZE);
 
-    return bool_stack;
+    return back_stack;
 };
 
-BOOLSTACK* pushBoolStack(BOOLSTACK* bool_stack, boolState state) {
-    bool_stack->index++;
+void resetBackStack(BackStack* stack) {
+    if (stack == (BackStack*) NULL) {
+        return;
+    }
+    for (int i = 0; i <= stack->index; i++) {
+        free(stack->states[i]);
+    }
+    free(stack);
+    return;
+}
 
-    if (bool_stack->index < bool_stack->max) {
+BackStack* pushBackStack(BackStack* back_stack, BoolState state, unsigned short backTrackState) {
+    if (back_stack->index < back_stack->max) {
 
-        boolState* newState = (boolState*) malloc(sizeof(boolState));
-        newState->match = state.match;
+        back_stack->index++;
+
+        BackState* newState = (BackState*) malloc(sizeof(BackState));
+        newState->backTrackState = backTrackState;
         newState->consumed = state.consumed;
-        newState->end = state.end;
-        bool_stack->states[bool_stack->index] = newState;
+        newState->index = state.end;
+        back_stack->states[back_stack->index] = newState;
 
-        return bool_stack;
+        return back_stack;
     }
     error("Bool stack overflow!", 2);
 
-    return (BOOLSTACK*) NULL;
+    return (BackStack*) NULL;
 };
 
-boolState* popBoolStack(BOOLSTACK* bool_stack) {
-    if (bool_stack->index > 0) {
-        boolState* poppedState = bool_stack->states[bool_stack->index];
+BackState* popBackStack(BackStack* back_stack) {
+    if (back_stack->index > 0) {
+        BackState* poppedState = back_stack->states[back_stack->index];
 
-        bool_stack->index--;
+        back_stack->index--;
         return poppedState;
     }
 
-    return (boolState*) NULL;
+    return (BackState*) NULL;
 }
 
-int backtrack(BOOLSTACK* bool_stack) {
-    boolState* poppedState = popBoolStack(bool_stack);
-    if (poppedState != (boolState*) NULL && poppedState->consumed > 0) {
-        int index = poppedState->end;
-
-        free(poppedState);
-        return index;
-    }
-    return -1;
+BackState* backtrack(BackStack* back_stack) {
+    BackState* poppedState = popBackStack(back_stack);
+    return poppedState;
 }
