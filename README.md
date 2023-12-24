@@ -9,6 +9,8 @@ However, this implementation seeks to allow for the minimum that any user famili
 <ul>
   
   Matches literals (ex. 1, e, r, k)
+
+  Matches literal sets (careting also supported)
   
   Matches anything: .
   
@@ -19,6 +21,8 @@ However, this implementation seeks to allow for the minimum that any user famili
   Matching zero or one: ?
 
   Variable matching: {,}
+
+  Backtracking (greedy, lazy, possessive)
 </ul>
 
 **TODO features:**
