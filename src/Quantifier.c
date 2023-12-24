@@ -19,11 +19,12 @@ int feedQuantifier(RE* regular_expression, size_t i, char* re, size_t len) {
     }
 
     if (max < 0) { max = min; }
-    if (max < min) { max = INT16_MAX; }
+    if ( max <= min && place == &max ) { max = INT16_MAX; }
 
     regular_expression->quantifier.type = MIN_MAX;
     regular_expression->quantifier.max = max;
     regular_expression->quantifier.min = min;
+    regular_expression->quantifier.modifier = GREEDY;
     
     return i;
 }

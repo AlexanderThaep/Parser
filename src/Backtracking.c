@@ -34,6 +34,7 @@ BackStack* pushBackStack(BackStack* back_stack, BoolState state, unsigned short 
         newState->backTrackState = backTrackState;
         newState->consumed = state.consumed;
         newState->index = state.end;
+        newState->matches = 0;
         back_stack->states[back_stack->index] = newState;
 
         return back_stack;

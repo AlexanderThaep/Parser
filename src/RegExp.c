@@ -94,7 +94,9 @@ RE** parse(char* re, size_t len) {
                     error("? Quantifier has to follow something", 2);
                 }
                 if (lastRE->quantifier.type == EXACTLY_ONE) {
-                    lastRE->quantifier.type = ZERO_OR_ONE; 
+                    lastRE->quantifier.type = MIN_MAX;
+                    lastRE->quantifier.max = 1;
+                    lastRE->quantifier.min = 0;
                 }
                 lastRE->quantifier.modifier = LAZY;
                 
@@ -107,7 +109,7 @@ RE** parse(char* re, size_t len) {
                 }
                 if (lastRE->quantifier.type == EXACTLY_ONE) {
                     lastRE->quantifier.type = MIN_MAX;
-                    lastRE->quantifier.max = INT8_MAX;
+                    lastRE->quantifier.max = INT16_MAX;
                     lastRE->quantifier.min = 1;
                 }
                 lastRE->quantifier.modifier = POSSESSIVE;
@@ -119,7 +121,9 @@ RE** parse(char* re, size_t len) {
                 if (lastRE == (RE*) NULL || lastRE->quantifier.type != EXACTLY_ONE) {
                     error("* Quantifier has to follow an exactly one", 2);
                 }
-                lastRE->quantifier.type = ZERO_OR_MORE;
+                lastRE->quantifier.type = MIN_MAX;
+                lastRE->quantifier.max = INT16_MAX;
+                lastRE->quantifier.min = 0;
                 i++;
 
                 continue;

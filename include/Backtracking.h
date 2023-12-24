@@ -10,6 +10,7 @@
 typedef struct BackState {
     unsigned int index;
     unsigned int consumed;
+    unsigned int matches;
     unsigned short backTrackState;
 } BackState;
 
