@@ -1,5 +1,3 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include <RegExp.h>
 
 #if !defined(BACKTRACK)
@@ -10,7 +8,7 @@
 typedef struct BackState {
     unsigned int index;
     unsigned int consumed;
-    unsigned int matches;
+    unsigned int stateIndex;
     unsigned short backTrackState;
 } BackState;
 
@@ -22,7 +20,7 @@ typedef struct BackStack {
 
 BackStack* createBackStack();
 void resetBackStack(BackStack* stack);
-BackStack* pushBackStack(BackStack* back_stack, BoolState state, unsigned short backTrackState);
+BackStack* pushBackStack(BackStack* back_stack, BoolState state, unsigned short backTrackState, unsigned int stateIndex);
 BackState* popBackStack(BackStack* back_stack);
 BackState* backtrack(BackStack* back_stack);
 

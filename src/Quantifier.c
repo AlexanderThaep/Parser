@@ -26,10 +26,10 @@ int feedQuantifier(RE* regular_expression, size_t i, char* re, size_t len) {
     }
 
     if (accessedMin == 0 && accessedMax == 0) { max = INT32_MAX; }
-    if (accessedMax == 0) { max = INT32_MAX; }
-    if (max < min) { max = INT32_MAX; }
+    if (accessedMax == 0 && place == &max) { max = INT32_MAX; }
+    if (max < min) { max = min; }
 
-    regular_expression->quantifier.type = MIN_MAX;
+    regular_expression->quantifier.type = RANGE;
     regular_expression->quantifier.max = max;
     regular_expression->quantifier.min = min;
     regular_expression->quantifier.modifier = GREEDY;

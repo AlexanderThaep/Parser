@@ -53,130 +53,60 @@ BoolState test(RE **stack, char *string, size_t len)
     {
         BoolState state;
 
+        int matches = current_state->matches;
+        int max = current_state->quantifier.max;
+        int min = current_state->quantifier.min;
+
         switch (current_state->quantifier.type)
         {
         case EXACTLY_ONE:
-            state = stateMatchesStringAtIndex(current_state, string, len, i);
+        case RANGE:
+            while (matches < max)
+            {
+                if (i >= len)
+                {
+                    break;
+                }
 
-            if (state.match == 0)
+                if (matches >= min)
+                {
+                    if (current_state->quantifier.modifier != POSSESSIVE) 
+                    { 
+                        pushBackStack(back_stack, state, current_state->quantifier.modifier, j);
+                    }
+                }
+
+                state = stateMatchesStringAtIndex(current_state, string, len, i);
+                if (state.match == 0 || state.consumed == 0)
+                {
+                    break;
+                }
+
+                matches++;
+
+                state.end = i;
+                i += state.consumed;
+            }
+
+            if (matches < min)
             {
                 BackState* backState = backtrack(back_stack);
-                if (backState == (BackState*) NULL 
-                || backState->consumed < 1)
+                if (backState != (BackState*) NULL)
                 {
-                    goto END;
-                }
-                i = backState->index;
-                if (backState->backTrackState == LAZY) { i++; current_state = stack[--j]; }
-
-                free(backState);
-                continue;
-            }
-
-            i += state.consumed;
-            current_state = stack[++j];
-
-            continue;
-        // case ZERO_OR_ONE:
-        //     if (i >= len)
-        //     {
-        //         current_state = stack[++j];
-        //         continue;
-        //     }
-
-        //     state = stateMatchesStringAtIndex(current_state, string, len, i);
-        //     state.end = i;
-        //     i += state.consumed;
-
-        //     if (current_state->quantifier.modifier != POSSESSIVE) 
-        //     { pushBackStack(back_stack, state, current_state->quantifier.modifier); }
-
-        //     current_state = stack[++j];
-        //     continue;
-        // case ZERO_OR_MORE:
-        //     while (1)
-        //     {
-        //         if (i >= len)
-        //         {
-        //             current_state = stack[++j];
-        //             break;
-        //         }
-
-        //         state = stateMatchesStringAtIndex(current_state, string, len, i);
-        //         if (state.match == 0 || state.consumed == 0)
-        //         {
-        //             current_state = stack[++j];
-        //             break;
-        //         }
-
-        //         state.end = i;
-        //         i += state.consumed;
-                
-        //         if (current_state->quantifier.modifier != POSSESSIVE) 
-        //         { pushBackStack(back_stack, state, current_state->quantifier.modifier); }
-
-        //         if (current_state->quantifier.modifier == LAZY) {
-        //             current_state = stack[++j];
-        //             break;
-        //         }
-        //     }
-        //     continue;
-        case MIN_MAX:
-            {
-                int matches = 0;
-
-                int max = current_state->quantifier.max;
-                int min = current_state->quantifier.min;
-
-                while (matches < max)
-                {
-                    if (i >= len)
-                    {
-                        current_state = stack[++j];
-                        break;
-                    }
-
-                    state = stateMatchesStringAtIndex(current_state, string, len, i);
-                    if (state.match == 0 || state.consumed == 0)
-                    {
-                        goto EXITLOOP;
-                    }
-
-                    matches++;
-
-                    state.end = i;
-                    i += state.consumed;
-
-                    if (matches > min)
-                    {
-                        if (current_state->quantifier.modifier != POSSESSIVE) 
-                        { 
-                            pushBackStack(back_stack, state, current_state->quantifier.modifier);
-                        }
-
-                        if (current_state->quantifier.modifier == LAZY) {
-                            break;
-                        }
-                    }
-                }
-
-                EXITLOOP:
-                if (matches < min)
-                {
-                    BackState* backState = backtrack(back_stack);
-                    if (backState == (BackState*) NULL 
-                    || backState->consumed < 1)
-                    {
-                        goto END;
-                    }
                     i = backState->index;
-                    if (backState->backTrackState == LAZY) { i++; current_state = stack[--j]; }
-
+                    j = backState->stateIndex + 1;
                     free(backState);
+
                     continue;
+                } else {
+
+                    resetBackStack(back_stack);
+                    return returnState;
+
                 }
-                current_state = stack[++j];
             }
+
+            current_state = stack[++j];
             continue;
         default:
             error("Unsupported quantifier", 2);
@@ -186,14 +116,13 @@ BoolState test(RE **stack, char *string, size_t len)
     returnState.consumed = i;
     returnState.match = 1;
 
-    END:
     resetBackStack(back_stack);
     return returnState;
 }
 
 BoolState *match(RE **stack, char *string, size_t len)
 {
-    BoolState *states = (BoolState *)malloc(sizeof(BoolState) * DEFAULT_STACK_SIZE * 2);
+    BoolState *states = (BoolState *)malloc(sizeof(BoolState) * MATCHES_ARRAY);
     if (states == (BoolState *)NULL)
     {
         return (BoolState *)NULL;

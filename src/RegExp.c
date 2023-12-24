@@ -8,7 +8,13 @@ RE* createRegularExpression(int type, int quantifier, char data) {
 
     regular_expression->type = type;
     regular_expression->data = data;
+    regular_expression->matches = 0;
+
     regular_expression->quantifier.type = quantifier;
+    regular_expression->quantifier.max = 1;
+    regular_expression->quantifier.min = 1;
+    regular_expression->quantifier.modifier = GREEDY;
+
     regular_expression->child_stack = (RE**) NULL;
     regular_expression->table = (char*) NULL;
 
@@ -93,12 +99,13 @@ RE** parse(char* re, size_t len) {
                 if (lastRE == (RE*) NULL || lastRE->quantifier.type == NONE) {
                     error("? Quantifier has to follow something", 2);
                 }
+                lastRE->quantifier.modifier = LAZY;
                 if (lastRE->quantifier.type == EXACTLY_ONE) {
-                    lastRE->quantifier.type = MIN_MAX;
+                    lastRE->quantifier.type = RANGE;
+                    lastRE->quantifier.modifier = GREEDY;
                     lastRE->quantifier.max = 1;
                     lastRE->quantifier.min = 0;
                 }
-                lastRE->quantifier.modifier = LAZY;
                 
                 i++;
                 continue;
@@ -107,25 +114,30 @@ RE** parse(char* re, size_t len) {
                 if (lastRE == (RE*) NULL || lastRE->quantifier.type == NONE) {
                     error("+ Quantifier has to follow something", 2);
                 }
+                lastRE->quantifier.modifier = POSSESSIVE;
                 if (lastRE->quantifier.type == EXACTLY_ONE) {
-                    lastRE->quantifier.type = MIN_MAX;
+                    lastRE->quantifier.type = RANGE;
+                    lastRE->quantifier.modifier = GREEDY;
                     lastRE->quantifier.max = INT16_MAX;
                     lastRE->quantifier.min = 1;
                 }
-                lastRE->quantifier.modifier = POSSESSIVE;
                 
                 i++;
                 continue;
             case '*':
                 lastRE = peekStack(peekStack(parse_stack)->child_stack);
-                if (lastRE == (RE*) NULL || lastRE->quantifier.type != EXACTLY_ONE) {
+                if (lastRE == (RE*) NULL || lastRE->quantifier.type == NONE) {
                     error("* Quantifier has to follow an exactly one", 2);
                 }
-                lastRE->quantifier.type = MIN_MAX;
-                lastRE->quantifier.max = INT16_MAX;
-                lastRE->quantifier.min = 0;
-                i++;
+                lastRE->quantifier.modifier = GREEDY;
+                if (lastRE->quantifier.type == EXACTLY_ONE) {
+                    lastRE->quantifier.type = RANGE;
+                    lastRE->quantifier.modifier = GREEDY;
+                    lastRE->quantifier.max = INT16_MAX;
+                    lastRE->quantifier.min = 0;
+                }
 
+                i++;
                 continue;
             case '(':
                 regular_expression = createRegularExpression(GROUP, EXACTLY_ONE, re[i]);

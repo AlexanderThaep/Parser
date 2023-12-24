@@ -10,7 +10,7 @@
 #define EXACTLY_ONE        0x001
 #define ZERO_OR_ONE        0x002
 #define ZERO_OR_MORE       0x003
-#define MIN_MAX            0x004
+#define RANGE              0x004
 
 #define GREEDY             0x000
 #define POSSESSIVE         0x001
@@ -24,6 +24,7 @@
 #define ASCII_CARET           94
 
 #define DEFAULT_STACK_SIZE    64
+#define MATCHES_ARRAY        512
 #define ASCII_TABLE          256
 
 typedef struct Quantifier {
@@ -34,8 +35,9 @@ typedef struct Quantifier {
 } Quantifier;
 
 typedef struct RE {
-    unsigned short type;
-    unsigned short data;
+    unsigned char type;
+    unsigned char data;
+    unsigned short matches;
     struct Quantifier quantifier;
     struct RE** child_stack;
     char* table;

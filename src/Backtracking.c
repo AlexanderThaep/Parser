@@ -18,41 +18,39 @@ void resetBackStack(BackStack* stack) {
     if (stack == (BackStack*) NULL) {
         return;
     }
-    for (int i = 0; i <= stack->index; i++) {
+    for (int i = 0; i < stack->max; i++) {
         free(stack->states[i]);
     }
     free(stack);
     return;
 }
 
-BackStack* pushBackStack(BackStack* back_stack, BoolState state, unsigned short backTrackState) {
+BackStack* pushBackStack(BackStack* back_stack, BoolState state, unsigned short backTrackState, unsigned int stateIndex) {
     if (back_stack->index < back_stack->max) {
-
-        back_stack->index++;
 
         BackState* newState = (BackState*) malloc(sizeof(BackState));
         newState->backTrackState = backTrackState;
         newState->consumed = state.consumed;
         newState->index = state.end;
-        newState->matches = 0;
+        newState->stateIndex = stateIndex;
         back_stack->states[back_stack->index] = newState;
+
+        back_stack->index++;
 
         return back_stack;
     }
-    error("Bool stack overflow!", 2);
 
+    error("Bool stack overflow!", 2);
     return (BackStack*) NULL;
 };
 
 BackState* popBackStack(BackStack* back_stack) {
     if (back_stack->index > 0) {
-        BackState* poppedState = back_stack->states[back_stack->index];
-
         back_stack->index--;
-        return poppedState;
     }
-
-    return (BackState*) NULL;
+    BackState* poppedState = back_stack->states[back_stack->index];
+    back_stack->states[back_stack->index] = (BackState*) NULL;
+    return poppedState;
 }
 
 BackState* backtrack(BackStack* back_stack) {
