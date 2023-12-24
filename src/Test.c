@@ -49,13 +49,23 @@ BoolState test(RE **stack, char *string, size_t len)
     RE *current_state = stack[++j];
     BackStack *back_stack = createBackStack();
     
+    int matches = current_state->matches;
+    int max = current_state->quantifier.max;
+    int min = current_state->quantifier.min;
+
+    unsigned char stopLaziness = 0;
+
     while (current_state != (RE *)NULL)
     {
         BoolState state;
 
-        int matches = current_state->matches;
-        int max = current_state->quantifier.max;
-        int min = current_state->quantifier.min;
+        BEGIN:
+
+        current_state = stack[j];
+
+        matches = current_state->matches;
+        max = current_state->quantifier.max;
+        min = current_state->quantifier.min;
 
         switch (current_state->quantifier.type)
         {
@@ -72,7 +82,15 @@ BoolState test(RE **stack, char *string, size_t len)
                 {
                     if (current_state->quantifier.modifier != POSSESSIVE) 
                     { 
-                        pushBackStack(back_stack, state, current_state->quantifier.modifier, j);
+                        if (current_state->quantifier.modifier == LAZY && stopLaziness == 0) {
+                            state.end = i;
+                            pushBackStack(back_stack, state, current_state->quantifier.modifier, j);
+                            current_state = stack[++j];
+                            goto BEGIN;
+                        } else if (stopLaziness == 0) {
+                            pushBackStack(back_stack, state, current_state->quantifier.modifier, j);
+                        }
+                        stopLaziness = 0;
                     }
                 }
 
@@ -95,6 +113,13 @@ BoolState test(RE **stack, char *string, size_t len)
                 {
                     i = backState->index;
                     j = backState->stateIndex + 1;
+
+                    if (backState->backTrackState == LAZY) {
+                        j--;
+                        free(backState);
+                        stopLaziness = 1;
+                        goto BEGIN;
+                    }
                     free(backState);
 
                     continue;

@@ -11,6 +11,7 @@
         "regtypes.h": "c",
         "stdio.h": "c",
         "literalgroup.h": "c",
-        "regexp.h": "c"
+        "regexp.h": "c",
+        "string.h": "c"
     }
 }

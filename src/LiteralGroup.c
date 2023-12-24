@@ -6,7 +6,7 @@
 void activateLiteral(char* table, char literal, char last, int* addr_active_ranging) {
     int index = (int) literal;
     if ((*addr_active_ranging) == 1) {
-        for (int i = last; i <= literal; i++) {
+        for (int i = last + 1; i <= literal; i++) {
             table[i] = 1 - table[i];
         }
         (*addr_active_ranging) = 0;
@@ -46,6 +46,7 @@ int feedLiteral(RE* regular_expression, size_t i, char* re, size_t len) {
             }
         }
 
+        int a = re[i];
         activateLiteral(table, re[i], last, &active_ranging);
         last = re[i];
         i++;

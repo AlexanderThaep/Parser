@@ -4,7 +4,8 @@
 #include <RegExp.h>
 
 int main(int argc, char** args) {
-    char* regex = "[A-Z].+? {1}";
+    char* regex = "[A-Z]?.*? ";
+    // char* regex = ".[a-z]*";
     char* testex = "However, this implementation seeks to allow for the minimum that any user familiar with RegEx would appreciate. There are few special features and even fewer guarantees of efficiency or function. Yet, it's a little novelty project that I hope to incorporate into a larger Language Parser and, eventually, compiler.";
 
     RE** parseStack = parse(regex, strlen(regex));
