@@ -33,7 +33,6 @@ BoolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
         }
         return returnState;
     }
-
     return returnState;
 }
 
@@ -48,10 +47,6 @@ BoolState test(RE **stack, char *string, size_t len)
 
     RE *current_state = stack[++j];
     BackStack *back_stack = createBackStack();
-    
-    int matches = current_state->matches;
-    int max = current_state->quantifier.max;
-    int min = current_state->quantifier.min;
 
     unsigned char stopLaziness = 0;
 
@@ -62,11 +57,11 @@ BoolState test(RE **stack, char *string, size_t len)
         BEGIN:
 
         current_state = stack[j];
-
-        matches = current_state->matches;
-        max = current_state->quantifier.max;
-        min = current_state->quantifier.min;
-
+     
+        int matches = current_state->matches;
+        int max = current_state->quantifier.max;
+        int min = current_state->quantifier.min;
+        
         switch (current_state->quantifier.type)
         {
         case EXACTLY_ONE:
