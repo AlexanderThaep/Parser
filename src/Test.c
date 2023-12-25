@@ -33,7 +33,6 @@ BoolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
         }
         return returnState;
     }
-
     return returnState;
 }
 
