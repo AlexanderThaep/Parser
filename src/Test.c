@@ -57,6 +57,8 @@ BoolState test(RE **stack, char *string, size_t len)
         BEGIN:
 
         current_state = stack[j];
+
+        if (current_state == (RE*) NULL) { break; }
      
         int matches = current_state->matches;
         int max = current_state->quantifier.max;
@@ -73,12 +75,13 @@ BoolState test(RE **stack, char *string, size_t len)
                     break;
                 }
 
+                state.end = i;
+
                 if (matches >= min)
                 {
                     if (current_state->quantifier.modifier != POSSESSIVE) 
                     { 
                         if (current_state->quantifier.modifier == LAZY && stopLaziness == 0) {
-                            state.end = i;
                             pushBackStack(back_stack, state, current_state->quantifier.modifier, j);
                             current_state = stack[++j];
                             goto BEGIN;
@@ -90,14 +93,13 @@ BoolState test(RE **stack, char *string, size_t len)
                 }
 
                 state = stateMatchesStringAtIndex(current_state, string, len, i);
-                if (state.match == 0 || state.consumed == 0)
+                if (state.match == 0)
                 {
                     break;
                 }
 
                 matches++;
 
-                state.end = i;
                 i += state.consumed;
             }
 
