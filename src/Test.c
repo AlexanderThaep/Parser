@@ -57,6 +57,8 @@ BoolState test(RE **stack, char *string, size_t len)
         BEGIN:
 
         current_state = stack[j];
+
+        if (current_state == (RE*) NULL) { break; }
      
         int matches = current_state->matches;
         int max = current_state->quantifier.max;
@@ -90,7 +92,7 @@ BoolState test(RE **stack, char *string, size_t len)
                 }
 
                 state = stateMatchesStringAtIndex(current_state, string, len, i);
-                if (state.match == 0 || state.consumed == 0)
+                if (state.match == 0)
                 {
                     break;
                 }
