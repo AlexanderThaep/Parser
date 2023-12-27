@@ -88,7 +88,6 @@ BoolState test(RE **stack, char *string, size_t len)
                         } else if (stopLaziness == 0) {
                             pushBackStack(back_stack, state, current_state->quantifier.modifier, j);
                         }
-                        stopLaziness = 0;
                     }
                 }
 
@@ -99,6 +98,7 @@ BoolState test(RE **stack, char *string, size_t len)
                 }
 
                 matches++;
+                stopLaziness = 0;
 
                 i += state.consumed;
             }
