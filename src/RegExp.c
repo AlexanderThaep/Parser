@@ -87,7 +87,7 @@ RE** parse(char* re, size_t len) {
 
     size_t i = 0;
     while (i < len) {
-        RE* regular_expression;
+        RE* regular_expression = (RE*) NULL;
         RE* lastRE;
         switch (re[i]) {
             case '.':
