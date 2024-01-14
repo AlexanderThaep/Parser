@@ -37,8 +37,8 @@ RE* pushStack(RE** stack, RE* regular_expression) {
     stack[0]->type++;
 
     int index = stack[0]->type;
-    char* err_msg = "Stack overflow!";
-    if (index >= stack[0]->data) { error(err_msg, 2); }
+
+    if (index >= stack[0]->data) { error("Stack overflow!", 2); }
 
     stack[index] = regular_expression;
 
@@ -48,6 +48,13 @@ RE* pushStack(RE** stack, RE* regular_expression) {
 RE* peekStack(RE** stack) {
     int index = stack[0]->type;
     if (index < 0) { return (RE*) NULL; }
+
+    if (stack[index]->type == PORTAL) {
+        RE** address = stack[index]->child_stack;
+        free(stack[index]);
+        stack[0]->type--;
+        return peekStack(address);
+    }
     
     return stack[index];
 }
@@ -198,7 +205,26 @@ RE** parse(char* re, size_t len) {
                 }
                 break;
             case '|':
-                //Hard to implement since lookahead was not intended
+                lastRE = popStack(peekStack(parse_stack)->child_stack);
+                if (lastRE == (RE*) NULL || lastRE->quantifier.type == NONE) {
+                    error("| has to follow something", 2);
+                }
+
+                RE* portal = createRegularExpression(PORTAL, NONE, NONE);
+                portal->child_stack = peekStack(parse_stack)->child_stack;
+
+                if (lastRE->type != OR_GROUP) {
+                    regular_expression = createRegularExpression(OR_GROUP, EXACTLY_ONE, re[i]);
+                    regular_expression->child_stack = createParseStack(DEFAULT_STACK_SIZE / 2);
+
+                    pushStack(peekStack(parse_stack)->child_stack, regular_expression);
+                    pushStack(regular_expression->child_stack, lastRE);
+                } else {
+                    pushStack(peekStack(parse_stack)->child_stack, lastRE);
+                }
+
+                pushStack(parse_stack, portal);
+
                 break;
             case '\0':
                 break;
@@ -211,7 +237,15 @@ RE** parse(char* re, size_t len) {
     }
     
     if (parse_stack[0]->type > 0) {
-        error("Incomplete parentheses", 2);
+        int index = parse_stack[0]->type;
+        switch (parse_stack[index]->type) {
+            case GROUP:
+                error("Incomplete parentheses", 2);
+                break;
+            case OR_GROUP:
+                error("| must have both sides", 2);
+                break;
+        }
     }
 
     RE** return_stack = parse_stack[0]->child_stack;

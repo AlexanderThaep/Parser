@@ -7,6 +7,7 @@
 #define GROUP              0x003
 #define LITERAL_GROUP      0x004
 #define OR_GROUP           0x005
+#define PORTAL             0x006
 
 #define EXACTLY_ONE        0x001
 #define ZERO_OR_ONE        0x002
