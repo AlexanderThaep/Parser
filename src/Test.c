@@ -10,7 +10,7 @@ BoolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
     returnState.match = 0;
 
     if (i < len)
-    {
+    {    
         switch (state->type)
         {
         case WILDCARD:
@@ -26,6 +26,24 @@ BoolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
         case LITERAL_GROUP:
             returnState.match = (state->table[(int)string[i]] == 1) ? 1 : returnState.match;
             returnState.consumed = returnState.match;
+            break;
+        case OR_GROUP:
+            // damn, this works :.)
+            {           
+                int index = 1;
+                RE* stack[3];
+
+                stack[0] = (RE*) NULL;
+                stack[2] = (RE*) NULL;
+
+                while (state->child_stack[index] != (RE*) NULL) {
+                    stack[1] = state->child_stack[index];
+                    returnState = test(stack, &(string)[i], len - i);
+                    if (returnState.match == 1) { return returnState; }
+                    index++;
+                }
+            }
+
             break;
         default:
             error("Unsupported state type", 2);

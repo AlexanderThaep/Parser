@@ -2,4 +2,8 @@
 Main
 Main.dSYM/Contents/Info.plist
 Main.dSYM/Contents/Resources/Relocations/aarch64/Main.yml
-.vscode
+.vscode/*
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/settings.json

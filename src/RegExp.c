@@ -37,8 +37,8 @@ RE* pushStack(RE** stack, RE* regular_expression) {
     stack[0]->type++;
 
     int index = stack[0]->type;
-    char* err_msg = "Stack overflow!";
-    if (index >= stack[0]->data) { error(err_msg, 2); }
+
+    if (index >= stack[0]->data) { error("Stack overflow!", 2); }
 
     stack[index] = regular_expression;
 
@@ -47,7 +47,14 @@ RE* pushStack(RE** stack, RE* regular_expression) {
 
 RE* peekStack(RE** stack) {
     int index = stack[0]->type;
-    if (index < 0) { return (RE*) NULL; }
+    if (index < 0 || stack[index] == (RE*) NULL) { return (RE*) NULL; }
+
+    if (stack[index]->type == PORTAL) {
+        RE** address = stack[index]->child_stack;
+        free(stack[index]);
+        stack[0]->type--;
+        return peekStack(address);
+    }
     
     return stack[index];
 }
@@ -67,6 +74,7 @@ void debug(RE** parseStack, int level) {
             printf("LEVEL: %d\n", level);
             printf("--TYPE: %d\n", parseStack[i]->type);
             printf("--QUANTIFIER: %d\n", parseStack[i]->quantifier.type);
+            printf("----MODIFIER: %d\n", parseStack[i]->quantifier.modifier);
             printf("--DATA: %d\n", parseStack[i]->data);
             printf("--CHILDSTACK: %p\n", parseStack[i]->child_stack);
             if (parseStack[i]->child_stack != (RE**) NULL) {
@@ -86,14 +94,13 @@ RE** parse(char* re, size_t len) {
 
     size_t i = 0;
     while (i < len) {
-        RE* regular_expression;
+        RE* regular_expression = (RE*) NULL;
         RE* lastRE;
         switch (re[i]) {
             case '.':
                 regular_expression = createRegularExpression(WILDCARD, EXACTLY_ONE, re[i]);
                 pushStack(peekStack(parse_stack)->child_stack, regular_expression);
-                i++;
-                continue;
+                break;
             case '?':
                 lastRE = peekStack(peekStack(parse_stack)->child_stack);
                 if (lastRE == (RE*) NULL || lastRE->quantifier.type == NONE) {
@@ -106,9 +113,7 @@ RE** parse(char* re, size_t len) {
                     lastRE->quantifier.max = 1;
                     lastRE->quantifier.min = 0;
                 }
-                
-                i++;
-                continue;
+                break;
             case '+':
                 lastRE = peekStack(peekStack(parse_stack)->child_stack);
                 if (lastRE == (RE*) NULL || lastRE->quantifier.type == NONE) {
@@ -121,9 +126,7 @@ RE** parse(char* re, size_t len) {
                     lastRE->quantifier.max = INT16_MAX;
                     lastRE->quantifier.min = 1;
                 }
-                
-                i++;
-                continue;
+                break;
             case '*':
                 lastRE = peekStack(peekStack(parse_stack)->child_stack);
                 if (lastRE == (RE*) NULL || lastRE->quantifier.type == NONE) {
@@ -136,9 +139,7 @@ RE** parse(char* re, size_t len) {
                     lastRE->quantifier.max = INT16_MAX;
                     lastRE->quantifier.min = 0;
                 }
-
-                i++;
-                continue;
+                break;
             case '(':
                 regular_expression = createRegularExpression(GROUP, EXACTLY_ONE, re[i]);
                 regular_expression->child_stack = createParseStack(DEFAULT_STACK_SIZE);
@@ -147,7 +148,7 @@ RE** parse(char* re, size_t len) {
                 break;
             case ')':
                 regular_expression = popStack(parse_stack);
-                if (regular_expression == (RE*) NULL) {
+                if (regular_expression == (RE*) NULL || regular_expression->type == OR_GROUP) {
                     error("Too many ) parentheses!", 2);
                 }
 
@@ -168,11 +169,62 @@ RE** parse(char* re, size_t len) {
                 i = feedLiteral(regular_expression, i + 1, re, len);
                 break;
             case '\\':
-                if (i++ < len) {
-                    regular_expression = createRegularExpression(LITERAL, EXACTLY_ONE, re[i]);
+                if (++i < len) {
+                    switch (re[i]) {
+                        case 'S':
+                            regular_expression = createRegularExpression(GROUP, EXACTLY_ONE, re[i]);
+                            regular_expression->child_stack = parse("[^ \n\t\v\f\r]", 9);
+                            break;
+                        case 'D':
+                            regular_expression = createRegularExpression(GROUP, EXACTLY_ONE, re[i]);
+                            regular_expression->child_stack = parse("[^0-9]", 6);
+                            break;
+                        case 'W':
+                            regular_expression = createRegularExpression(GROUP, EXACTLY_ONE, re[i]);
+                            regular_expression->child_stack = parse("[^a-zA-Z0-9]", 12);
+                            break;
+                        case 's':
+                            regular_expression = createRegularExpression(GROUP, EXACTLY_ONE, re[i]);
+                            regular_expression->child_stack = parse("[ \n\t\v\f\r]", 9);
+                            break;
+                        case 'd':
+                            regular_expression = createRegularExpression(GROUP, EXACTLY_ONE, re[i]);
+                            regular_expression->child_stack = parse("[0-9]", 6);
+                            break;
+                        case 'w':
+                            regular_expression = createRegularExpression(GROUP, EXACTLY_ONE, re[i]);
+                            regular_expression->child_stack = parse("[a-zA-Z0-9]", 12);
+                            break;
+                        case '\0':
+                            break;
+                        default:
+                            regular_expression = createRegularExpression(LITERAL, EXACTLY_ONE, re[i]);
+                            break;
+                    }
                     pushStack(peekStack(parse_stack)->child_stack, regular_expression);
-                    i++;
                 }
+                break;
+            case '|':
+                lastRE = popStack(peekStack(parse_stack)->child_stack);
+                if (lastRE == (RE*) NULL || lastRE->quantifier.type == NONE) {
+                    error("| has to follow something", 2);
+                }
+
+                RE* portal = createRegularExpression(PORTAL, NONE, NONE);
+                portal->child_stack = peekStack(parse_stack)->child_stack;
+
+                if (lastRE->type != OR_GROUP) {
+                    regular_expression = createRegularExpression(OR_GROUP, EXACTLY_ONE, re[i]);
+                    regular_expression->child_stack = createParseStack(DEFAULT_STACK_SIZE / 2);
+
+                    pushStack(peekStack(parse_stack)->child_stack, regular_expression);
+                    pushStack(regular_expression->child_stack, lastRE);
+                } else {
+                    pushStack(peekStack(parse_stack)->child_stack, lastRE);
+                }
+
+                pushStack(parse_stack, portal);
+
                 break;
             case '\0':
                 break;
@@ -185,7 +237,15 @@ RE** parse(char* re, size_t len) {
     }
     
     if (parse_stack[0]->type > 0) {
-        error("Incomplete parentheses", 2);
+        int index = parse_stack[0]->type;
+        switch (parse_stack[index]->type) {
+            case GROUP:
+                error("Incomplete parentheses", 2);
+                break;
+            case OR_GROUP:
+                error("| must have both sides", 2);
+                break;
+        }
     }
 
     RE** return_stack = parse_stack[0]->child_stack;

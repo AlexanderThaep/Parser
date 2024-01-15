@@ -46,7 +46,6 @@ int feedLiteral(RE* regular_expression, size_t i, char* re, size_t len) {
             }
         }
 
-        int a = re[i];
         activateLiteral(table, re[i], last, &active_ranging);
         last = re[i];
         i++;
