@@ -47,7 +47,7 @@ RE* pushStack(RE** stack, RE* regular_expression) {
 
 RE* peekStack(RE** stack) {
     int index = stack[0]->type;
-    if (index < 0) { return (RE*) NULL; }
+    if (index < 0 || stack[index] == (RE*) NULL) { return (RE*) NULL; }
 
     if (stack[index]->type == PORTAL) {
         RE** address = stack[index]->child_stack;
@@ -148,7 +148,7 @@ RE** parse(char* re, size_t len) {
                 break;
             case ')':
                 regular_expression = popStack(parse_stack);
-                if (regular_expression == (RE*) NULL) {
+                if (regular_expression == (RE*) NULL || regular_expression->type == OR_GROUP) {
                     error("Too many ) parentheses!", 2);
                 }
 
