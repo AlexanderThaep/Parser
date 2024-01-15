@@ -4,6 +4,8 @@ Regular expressions are used pretty everywhere involving user input since we com
 
 However, this implementation seeks to allow for the minimum that any user familiar with RegEx would appreciate. There are few special features and even fewer guarantees of efficiency or function. Yet, it's a little novelty project that I hope to incorporate into a larger Language Parser and, eventually, compiler.
 
+Again, this is very rough coding and there might even be some hidden cases that will break it and memory leaks abound.
+
 **Current features:**
 
 <ul>
