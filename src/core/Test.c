@@ -10,7 +10,7 @@ BoolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
     returnState.match = 0;
 
     if (i < len)
-    {    
+    {
         switch (state->type)
         {
         case WILDCARD:
@@ -29,17 +29,21 @@ BoolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
             break;
         case OR_GROUP:
             // damn, this works :.)
-            {           
+            {
                 int index = 1;
-                RE* stack[3];
+                RE *stack[3];
 
-                stack[0] = (RE*) NULL;
-                stack[2] = (RE*) NULL;
+                stack[0] = (RE *)NULL;
+                stack[2] = (RE *)NULL;
 
-                while (state->child_stack[index] != (RE*) NULL) {
+                while (state->child_stack[index] != (RE *)NULL)
+                {
                     stack[1] = state->child_stack[index];
                     returnState = test(stack, &(string)[i], len - i);
-                    if (returnState.match == 1) { return returnState; }
+                    if (returnState.match == 1)
+                    {
+                        return returnState;
+                    }
                     index++;
                 }
             }
@@ -72,16 +76,19 @@ BoolState test(RE **stack, char *string, size_t len)
     {
         BoolState state;
 
-        BEGIN:
+    BEGIN:
 
         current_state = stack[j];
 
-        if (current_state == (RE*) NULL) { break; }
-     
+        if (current_state == (RE *)NULL)
+        {
+            break;
+        }
+
         int matches = current_state->matches;
         int max = current_state->quantifier.max;
         int min = current_state->quantifier.min;
-        
+
         switch (current_state->quantifier.type)
         {
         case EXACTLY_ONE:
@@ -97,13 +104,16 @@ BoolState test(RE **stack, char *string, size_t len)
 
                 if (matches >= min)
                 {
-                    if (current_state->quantifier.modifier != POSSESSIVE) 
-                    { 
-                        if (current_state->quantifier.modifier == LAZY && stopLaziness == 0) {
+                    if (current_state->quantifier.modifier != POSSESSIVE)
+                    {
+                        if (current_state->quantifier.modifier == LAZY && stopLaziness == 0)
+                        {
                             pushBackStack(back_stack, state, current_state->quantifier.modifier, j);
                             current_state = stack[++j];
                             goto BEGIN;
-                        } else if (stopLaziness == 0) {
+                        }
+                        else if (stopLaziness == 0)
+                        {
                             pushBackStack(back_stack, state, current_state->quantifier.modifier, j);
                         }
                     }
@@ -123,13 +133,14 @@ BoolState test(RE **stack, char *string, size_t len)
 
             if (matches < min)
             {
-                BackState* backState = backtrack(back_stack);
-                if (backState != (BackState*) NULL)
+                BackState *backState = backtrack(back_stack);
+                if (backState != (BackState *)NULL)
                 {
                     i = backState->index;
                     j = backState->stateIndex + 1;
 
-                    if (backState->backTrackState == LAZY) {
+                    if (backState->backTrackState == LAZY)
+                    {
                         j--;
                         free(backState);
                         stopLaziness = 1;
@@ -138,11 +149,12 @@ BoolState test(RE **stack, char *string, size_t len)
                     free(backState);
 
                     continue;
-                } else {
+                }
+                else
+                {
 
                     resetBackStack(back_stack);
                     return returnState;
-
                 }
             }
 
