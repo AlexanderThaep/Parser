@@ -29,7 +29,7 @@
 
 #define DEFAULT_TOKEN_STACK_SIZE 64
 
-struct Token *parseInput(char *buffer);
+struct TokenStack *parseInput(char *buffer);
 
 // Recently just discovered that the Linux kernel style guide
 // disallows typedef'ing structs and unions
@@ -47,20 +47,6 @@ struct __attribute__((__packed__)) Token
     // unsigned int id;
     char *data;
     unsigned char id;
-};
-
-const char *RESERVED_WORDS[] = {
-    "if",
-    "then",
-    "else",
-    "elif",
-    "fi",
-    "do",
-    "done",
-    "case",
-    "esac",
-    "until",
-    "for"
 };
 
 #endif

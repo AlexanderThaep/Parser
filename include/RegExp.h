@@ -60,8 +60,6 @@ typedef struct BoolState
     unsigned int end;
 } BoolState;
 
-int error(char *message, int type);
-
 RE **parse(char *re, size_t len);
 BoolState test(RE **stack, char *string, size_t len);
 BoolState *match(RE **stack, char *string, size_t len);

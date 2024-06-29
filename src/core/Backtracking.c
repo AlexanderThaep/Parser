@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <RegExp.h>
 #include <Backtracking.h>
+#include <Error.h>
 
 BackStack *createBackStack()
 {
@@ -49,7 +50,7 @@ BackStack *pushBackStack(BackStack *back_stack, BoolState state, unsigned short 
         return back_stack;
     }
 
-    error("Bool stack overflow!", 2);
+    error("Bool stack overflow!", FATAL);
     return (BackStack *)NULL;
 };
 

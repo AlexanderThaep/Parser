@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <RegExp.h>
+#include <Error.h>
 
 RE *createRegularExpression(int type, int quantifier, char data)
 {
@@ -55,7 +56,7 @@ RE *pushStack(RE **stack, RE *regular_expression)
 
     if (index >= stack[0]->data)
     {
-        error("Stack overflow!", 2);
+        error("Stack overflow!", FATAL);
     }
 
     stack[index] = regular_expression;
@@ -142,7 +143,7 @@ RE **parse(char *re, size_t len)
             lastRE = peekStack(peekStack(parse_stack)->child_stack);
             if (lastRE == (RE *)NULL || lastRE->quantifier.type == NONE)
             {
-                error("? Quantifier has to follow something", 2);
+                error("? Quantifier has to follow something", FATAL);
             }
             lastRE->quantifier.modifier = LAZY;
             if (lastRE->quantifier.type == EXACTLY_ONE)
@@ -157,7 +158,7 @@ RE **parse(char *re, size_t len)
             lastRE = peekStack(peekStack(parse_stack)->child_stack);
             if (lastRE == (RE *)NULL || lastRE->quantifier.type == NONE)
             {
-                error("+ Quantifier has to follow something", 2);
+                error("+ Quantifier has to follow something", FATAL);
             }
             lastRE->quantifier.modifier = POSSESSIVE;
             if (lastRE->quantifier.type == EXACTLY_ONE)
@@ -172,7 +173,7 @@ RE **parse(char *re, size_t len)
             lastRE = peekStack(peekStack(parse_stack)->child_stack);
             if (lastRE == (RE *)NULL || lastRE->quantifier.type == NONE)
             {
-                error("* Quantifier has to follow an exactly one", 2);
+                error("* Quantifier has to follow an exactly one", FATAL);
             }
             lastRE->quantifier.modifier = GREEDY;
             if (lastRE->quantifier.type == EXACTLY_ONE)
@@ -193,7 +194,7 @@ RE **parse(char *re, size_t len)
             regular_expression = popStack(parse_stack);
             if (regular_expression == (RE *)NULL || regular_expression->type == OR_GROUP)
             {
-                error("Too many ) parentheses!", 2);
+                error("Too many ) parentheses!", FATAL);
             }
 
             pushStack(peekStack(parse_stack)->child_stack, regular_expression);
@@ -202,7 +203,7 @@ RE **parse(char *re, size_t len)
             lastRE = peekStack(peekStack(parse_stack)->child_stack);
             if (lastRE == (RE *)NULL || lastRE->quantifier.type != EXACTLY_ONE)
             {
-                error("Bracketed quantifier has to follow an exactly one", 2);
+                error("Bracketed quantifier has to follow an exactly one", FATAL);
             }
 
             i = feedQuantifier(lastRE, i, re, len);
@@ -255,7 +256,7 @@ RE **parse(char *re, size_t len)
             lastRE = popStack(peekStack(parse_stack)->child_stack);
             if (lastRE == (RE *)NULL || lastRE->quantifier.type == NONE)
             {
-                error("| has to follow something", 2);
+                error("| has to follow something", FATAL);
             }
 
             RE *portal = createRegularExpression(PORTAL, NONE, NONE);
@@ -293,10 +294,10 @@ RE **parse(char *re, size_t len)
         switch (parse_stack[index]->type)
         {
         case GROUP:
-            error("Incomplete parentheses", 2);
+            error("Incomplete parentheses", FATAL);
             break;
         case OR_GROUP:
-            error("| must have both sides", 2);
+            error("| must have both sides", FATAL);
             break;
         }
     }

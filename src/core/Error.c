@@ -1,8 +1,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void error(char *message, int type)
+#include <Error.h>
+
+const static char *ERRORS[] =
 {
-    fprintf(stderr, "ERROR: %s :::: Type %d\n", message, type);
+    "Undefined",
+    "Generic",
+    "Fatal"
+};
+
+void error(char *message, unsigned int type)
+{
+    fprintf(stderr, "[ERROR] %s :::: [TYPE] %s\n", message, ERRORS[type]);
     exit(EXIT_FAILURE);
 }

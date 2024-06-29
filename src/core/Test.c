@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <RegExp.h>
 #include <Backtracking.h>
+#include <Error.h>
 
 BoolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
 {
@@ -50,7 +51,7 @@ BoolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
 
             break;
         default:
-            error("Unsupported state type", 2);
+            error("Unsupported state type", FATAL);
             break;
         }
         return returnState;
@@ -161,7 +162,7 @@ BoolState test(RE **stack, char *string, size_t len)
             current_state = stack[++j];
             continue;
         default:
-            error("Unsupported quantifier", 2);
+            error("Unsupported quantifier", FATAL);
         }
     }
 
