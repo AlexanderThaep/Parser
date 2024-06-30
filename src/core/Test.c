@@ -77,7 +77,7 @@ struct BoolState test(struct RE **stack, char *string, size_t len)
     {
         struct BoolState state;
 
-    BEGIN:
+    BEGIN_TEST_LOOP:
 
         current_state = stack[j];
 
@@ -103,21 +103,17 @@ struct BoolState test(struct RE **stack, char *string, size_t len)
 
                 state.end = i;
 
-                if (matches >= min)
+                if (matches >= min 
+                && current_state->quantifier.modifier != POSSESSIVE 
+                && stopLaziness == 0)
                 {
-                    if (current_state->quantifier.modifier != POSSESSIVE)
+                    if (current_state->quantifier.modifier == LAZY)
                     {
-                        if (current_state->quantifier.modifier == LAZY && stopLaziness == 0)
-                        {
-                            pushBackStack(back_stack, state, current_state->quantifier.modifier, j);
-                            current_state = stack[++j];
-                            goto BEGIN;
-                        }
-                        else if (stopLaziness == 0)
-                        {
-                            pushBackStack(back_stack, state, current_state->quantifier.modifier, j);
-                        }
+                        pushBackStack(back_stack, state, current_state->quantifier.modifier, j);
+                        current_state = stack[++j];
+                        goto BEGIN_TEST_LOOP;
                     }
+                    pushBackStack(back_stack, state, current_state->quantifier.modifier, j);
                 }
 
                 state = stateMatchesStringAtIndex(current_state, string, len, i);
@@ -135,28 +131,25 @@ struct BoolState test(struct RE **stack, char *string, size_t len)
             if (matches < min)
             {
                 struct BackState *backState = backtrack(back_stack);
-                if (backState != (struct BackState *)NULL)
+                if (backState == (struct BackState *)NULL)
                 {
-                    i = backState->index;
-                    j = backState->stateIndex + 1;
-
-                    if (backState->backTrackState == LAZY)
-                    {
-                        j--;
-                        free(backState);
-                        stopLaziness = 1;
-                        goto BEGIN;
-                    }
-                    free(backState);
-
-                    continue;
-                }
-                else
-                {
-
                     resetBackStack(back_stack);
                     return returnState;
                 }
+
+                i = backState->index;
+                j = backState->stateIndex + 1;
+
+                if (backState->backTrackState == LAZY)
+                {
+                    j--;
+                    free(backState);
+                    stopLaziness = 1;
+                    goto BEGIN_TEST_LOOP;
+                }
+                free(backState);
+
+                continue;
             }
 
             current_state = stack[++j];
@@ -191,27 +184,26 @@ struct BoolState *match(struct RE **stack, char *string, size_t len)
         if (state.match == 0 && state.consumed == 0)
         {
             curIndex++;
+            continue;
         }
-        else
+
+        states[stateIndex].match = 1;
+        states[stateIndex].consumed = curIndex;
+
+        curIndex += state.consumed;
+        states[stateIndex].end = curIndex;
+
+        printf("%.*s Start/End at: %d/%d\n",
+                states[stateIndex].end - states[stateIndex].consumed,
+                string + states[stateIndex].consumed,
+                states[stateIndex].consumed,
+                states[stateIndex].end);
+
+        stateIndex++;
+
+        if (state.consumed == 0)
         {
-            states[stateIndex].match = 1;
-            states[stateIndex].consumed = curIndex;
-
-            curIndex += state.consumed;
-            states[stateIndex].end = curIndex;
-
-            printf("%.*s Start/End at: %d/%d\n",
-                   states[stateIndex].end - states[stateIndex].consumed,
-                   string + states[stateIndex].consumed,
-                   states[stateIndex].consumed,
-                   states[stateIndex].end);
-
-            stateIndex++;
-
-            if (state.consumed == 0)
-            {
-                curIndex++;
-            }
+            curIndex++;
         }
     }
 
