@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <RegExp.h>
 
-int feedQuantifier(RE *regular_expression, size_t i, char *re, size_t len)
+int feedQuantifier(struct RE *regular_expression, size_t i, char *re, size_t len)
 {
     unsigned int max = 0;
     unsigned int min = 0;

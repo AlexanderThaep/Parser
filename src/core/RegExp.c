@@ -3,12 +3,12 @@
 #include <RegExp.h>
 #include <Error.h>
 
-RE *createRegularExpression(int type, int quantifier, char data)
+struct RE *createRegularExpression(int type, int quantifier, char data)
 {
-    RE *regular_expression = (RE *)malloc(sizeof(RE));
-    if (regular_expression == (RE *)NULL)
+    struct RE *regular_expression = (struct RE *)malloc(sizeof(struct RE));
+    if (regular_expression == (struct RE *)NULL)
     {
-        return (RE *)NULL;
+        return (struct RE *)NULL;
     }
 
     regular_expression->type = type;
@@ -20,31 +20,31 @@ RE *createRegularExpression(int type, int quantifier, char data)
     regular_expression->quantifier.min = 1;
     regular_expression->quantifier.modifier = GREEDY;
 
-    regular_expression->child_stack = (RE **)NULL;
+    regular_expression->child_stack = (struct RE **)NULL;
     regular_expression->table = (char *)NULL;
 
     return regular_expression;
 }
 
-RE **createParseStack(int size)
+struct RE **createParseStack(int size)
 {
-    RE **parse_stack = (RE **)malloc(sizeof(RE *) * size);
-    if (parse_stack == (RE **)NULL || size < 1)
+    struct RE **parse_stack = (struct RE **)malloc(sizeof(struct RE *) * size);
+    if (parse_stack == (struct RE **)NULL || size < 1)
     {
-        return (RE **)NULL;
+        return (struct RE **)NULL;
     }
 
-    RE *first_regexp = createRegularExpression(NONE, NONE, size);
+    struct RE *first_regexp = createRegularExpression(NONE, NONE, size);
     parse_stack[0] = first_regexp;
 
     return parse_stack;
 }
 
-RE *pushStack(RE **stack, RE *regular_expression)
+struct RE *pushStack(struct RE **stack, struct RE *regular_expression)
 {
-    if (regular_expression == (RE *)NULL)
+    if (regular_expression == (struct RE *)NULL)
     {
-        return (RE *)NULL;
+        return (struct RE *)NULL;
     }
 
     stack[0]->type++;
@@ -64,17 +64,17 @@ RE *pushStack(RE **stack, RE *regular_expression)
     return regular_expression;
 }
 
-RE *peekStack(RE **stack)
+struct RE *peekStack(struct RE **stack)
 {
     int index = stack[0]->type;
-    if (index < 0 || stack[index] == (RE *)NULL)
+    if (index < 0 || stack[index] == (struct RE *)NULL)
     {
-        return (RE *)NULL;
+        return (struct RE *)NULL;
     }
 
     if (stack[index]->type == PORTAL)
     {
-        RE **address = stack[index]->child_stack;
+        struct RE **address = stack[index]->child_stack;
         free(stack[index]);
         stack[0]->type--;
         return peekStack(address);
@@ -83,22 +83,22 @@ RE *peekStack(RE **stack)
     return stack[index];
 }
 
-RE *popStack(RE **stack)
+struct RE *popStack(struct RE **stack)
 {
     int index = stack[0]->type;
     if (index < 1)
     {
-        return (RE *)NULL;
+        return (struct RE *)NULL;
     }
 
-    RE *regular_expression = peekStack(stack);
+    struct RE *regular_expression = peekStack(stack);
     stack[0]->type--;
     return regular_expression;
 }
 
-void debug(RE **parseStack, int level)
+void debug(struct RE **parseStack, int level)
 {
-    if (parseStack[0] != (RE *)NULL)
+    if (parseStack[0] != (struct RE *)NULL)
     {
         for (int i = 0; i <= parseStack[0]->type; i++)
         {
@@ -108,7 +108,7 @@ void debug(RE **parseStack, int level)
             printf("----MODIFIER: %d\n", parseStack[i]->quantifier.modifier);
             printf("--DATA: %d\n", parseStack[i]->data);
             printf("--CHILDSTACK: %p\n", parseStack[i]->child_stack);
-            if (parseStack[i]->child_stack != (RE **)NULL)
+            if (parseStack[i]->child_stack != (struct RE **)NULL)
             {
                 debug(parseStack[i]->child_stack, level + 1);
             }
@@ -116,23 +116,23 @@ void debug(RE **parseStack, int level)
     }
 }
 
-RE **parse(char *re, size_t len)
+struct RE **parse(char *re, size_t len)
 {
 
-    RE **parse_stack = createParseStack(DEFAULT_STACK_SIZE);
-    if (parse_stack == (RE **)NULL)
+    struct RE **parse_stack = createParseStack(DEFAULT_STACK_SIZE);
+    if (parse_stack == (struct RE **)NULL)
     {
-        return (RE **)NULL;
+        return (struct RE **)NULL;
     }
 
-    RE **child_stack = createParseStack(DEFAULT_STACK_SIZE);
+    struct RE **child_stack = createParseStack(DEFAULT_STACK_SIZE);
     parse_stack[0]->child_stack = child_stack;
 
     size_t i = 0;
     while (i < len)
     {
-        RE *regular_expression = (RE *)NULL;
-        RE *lastRE;
+        struct RE *regular_expression = (struct RE *)NULL;
+        struct RE *lastRE;
         switch (re[i])
         {
         case '.':
@@ -141,9 +141,9 @@ RE **parse(char *re, size_t len)
             break;
         case '?':
             lastRE = peekStack(peekStack(parse_stack)->child_stack);
-            if (lastRE == (RE *)NULL || lastRE->quantifier.type == NONE)
+            if (lastRE == (struct RE *)NULL || lastRE->quantifier.type == NONE)
             {
-                error("? Quantifier has to follow something", FATAL);
+                error("? struct Quantifier has to follow something", FATAL);
             }
             lastRE->quantifier.modifier = LAZY;
             if (lastRE->quantifier.type == EXACTLY_ONE)
@@ -156,9 +156,9 @@ RE **parse(char *re, size_t len)
             break;
         case '+':
             lastRE = peekStack(peekStack(parse_stack)->child_stack);
-            if (lastRE == (RE *)NULL || lastRE->quantifier.type == NONE)
+            if (lastRE == (struct RE *)NULL || lastRE->quantifier.type == NONE)
             {
-                error("+ Quantifier has to follow something", FATAL);
+                error("+ struct Quantifier has to follow something", FATAL);
             }
             lastRE->quantifier.modifier = POSSESSIVE;
             if (lastRE->quantifier.type == EXACTLY_ONE)
@@ -171,9 +171,9 @@ RE **parse(char *re, size_t len)
             break;
         case '*':
             lastRE = peekStack(peekStack(parse_stack)->child_stack);
-            if (lastRE == (RE *)NULL || lastRE->quantifier.type == NONE)
+            if (lastRE == (struct RE *)NULL || lastRE->quantifier.type == NONE)
             {
-                error("* Quantifier has to follow an exactly one", FATAL);
+                error("* struct Quantifier has to follow an exactly one", FATAL);
             }
             lastRE->quantifier.modifier = GREEDY;
             if (lastRE->quantifier.type == EXACTLY_ONE)
@@ -192,7 +192,7 @@ RE **parse(char *re, size_t len)
             break;
         case ')':
             regular_expression = popStack(parse_stack);
-            if (regular_expression == (RE *)NULL || regular_expression->type == OR_GROUP)
+            if (regular_expression == (struct RE *)NULL || regular_expression->type == OR_GROUP)
             {
                 error("Too many ) parentheses!", FATAL);
             }
@@ -201,7 +201,7 @@ RE **parse(char *re, size_t len)
             break;
         case '{':
             lastRE = peekStack(peekStack(parse_stack)->child_stack);
-            if (lastRE == (RE *)NULL || lastRE->quantifier.type != EXACTLY_ONE)
+            if (lastRE == (struct RE *)NULL || lastRE->quantifier.type != EXACTLY_ONE)
             {
                 error("Bracketed quantifier has to follow an exactly one", FATAL);
             }
@@ -254,12 +254,12 @@ RE **parse(char *re, size_t len)
             break;
         case '|':
             lastRE = popStack(peekStack(parse_stack)->child_stack);
-            if (lastRE == (RE *)NULL || lastRE->quantifier.type == NONE)
+            if (lastRE == (struct RE *)NULL || lastRE->quantifier.type == NONE)
             {
                 error("| has to follow something", FATAL);
             }
 
-            RE *portal = createRegularExpression(PORTAL, NONE, NONE);
+            struct RE *portal = createRegularExpression(PORTAL, NONE, NONE);
             portal->child_stack = peekStack(parse_stack)->child_stack;
 
             if (lastRE->type != OR_GROUP)
@@ -302,7 +302,7 @@ RE **parse(char *re, size_t len)
         }
     }
 
-    RE **return_stack = parse_stack[0]->child_stack;
+    struct RE **return_stack = parse_stack[0]->child_stack;
 
     free(parse_stack[0]);
     free(parse_stack);

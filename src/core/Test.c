@@ -4,9 +4,9 @@
 #include <Backtracking.h>
 #include <Error.h>
 
-BoolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
+struct BoolState stateMatchesStringAtIndex(struct RE *state, char *string, size_t len, int i)
 {
-    BoolState returnState;
+    struct BoolState returnState;
     returnState.consumed = 0;
     returnState.match = 0;
 
@@ -32,12 +32,12 @@ BoolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
             // damn, this works :.)
             {
                 int index = 1;
-                RE *stack[3];
+                struct RE *stack[3];
 
-                stack[0] = (RE *)NULL;
-                stack[2] = (RE *)NULL;
+                stack[0] = (struct RE *)NULL;
+                stack[2] = (struct RE *)NULL;
 
-                while (state->child_stack[index] != (RE *)NULL)
+                while (state->child_stack[index] != (struct RE *)NULL)
                 {
                     stack[1] = state->child_stack[index];
                     returnState = test(stack, &(string)[i], len - i);
@@ -59,29 +59,29 @@ BoolState stateMatchesStringAtIndex(RE *state, char *string, size_t len, int i)
     return returnState;
 }
 
-BoolState test(RE **stack, char *string, size_t len)
+struct BoolState test(struct RE **stack, char *string, size_t len)
 {
     int i = 0;
     int j = 0;
 
-    BoolState returnState;
+    struct BoolState returnState;
     returnState.consumed = 0;
     returnState.match = 0;
 
-    RE *current_state = stack[++j];
-    BackStack *back_stack = createBackStack();
+    struct RE *current_state = stack[++j];
+    struct BackStack *back_stack = createBackStack();
 
     unsigned char stopLaziness = 0;
 
-    while (current_state != (RE *)NULL)
+    while (current_state != (struct RE *)NULL)
     {
-        BoolState state;
+        struct BoolState state;
 
     BEGIN:
 
         current_state = stack[j];
 
-        if (current_state == (RE *)NULL)
+        if (current_state == (struct RE *)NULL)
         {
             break;
         }
@@ -134,8 +134,8 @@ BoolState test(RE **stack, char *string, size_t len)
 
             if (matches < min)
             {
-                BackState *backState = backtrack(back_stack);
-                if (backState != (BackState *)NULL)
+                struct BackState *backState = backtrack(back_stack);
+                if (backState != (struct BackState *)NULL)
                 {
                     i = backState->index;
                     j = backState->stateIndex + 1;
@@ -173,12 +173,12 @@ BoolState test(RE **stack, char *string, size_t len)
     return returnState;
 }
 
-BoolState *match(RE **stack, char *string, size_t len)
+struct BoolState *match(struct RE **stack, char *string, size_t len)
 {
-    BoolState *states = (BoolState *)malloc(sizeof(BoolState) * MATCHES_ARRAY);
-    if (states == (BoolState *)NULL)
+    struct BoolState *states = (struct BoolState *)malloc(sizeof(struct BoolState) * MATCHES_ARRAY);
+    if (states == (struct BoolState *)NULL)
     {
-        return (BoolState *)NULL;
+        return (struct BoolState *)NULL;
     }
 
     int stateIndex = 0;
@@ -186,7 +186,7 @@ BoolState *match(RE **stack, char *string, size_t len)
 
     while (curIndex < len)
     {
-        BoolState state = test(stack, string + curIndex, len - curIndex);
+        struct BoolState state = test(stack, string + curIndex, len - curIndex);
 
         if (state.match == 0 && state.consumed == 0)
         {

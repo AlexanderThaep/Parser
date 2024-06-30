@@ -4,24 +4,24 @@
 #include <Backtracking.h>
 #include <Error.h>
 
-BackStack *createBackStack()
+struct BackStack *createBackStack()
 {
-    BackStack *back_stack = (BackStack *)malloc(sizeof(BackStack));
-    if (back_stack == (BackStack *)NULL)
+    struct BackStack *back_stack = (struct BackStack *)malloc(sizeof(struct BackStack));
+    if (back_stack == (struct BackStack *)NULL)
     {
         return back_stack;
     }
 
     back_stack->index = 0;
     back_stack->max = BOOLSTACK_SIZE;
-    back_stack->states = (BackState **)malloc(sizeof(BackState *) * BOOLSTACK_SIZE);
+    back_stack->states = (struct BackState **)malloc(sizeof(struct BackState *) * BOOLSTACK_SIZE);
 
     return back_stack;
 };
 
-void resetBackStack(BackStack *stack)
+void resetBackStack(struct BackStack *stack)
 {
-    if (stack == (BackStack *)NULL)
+    if (stack == (struct BackStack *)NULL)
     {
         return;
     }
@@ -33,12 +33,12 @@ void resetBackStack(BackStack *stack)
     return;
 }
 
-BackStack *pushBackStack(BackStack *back_stack, BoolState state, unsigned short backTrackState, unsigned int stateIndex)
+struct BackStack *pushBackStack(struct BackStack *back_stack, struct BoolState state, unsigned short backTrackState, unsigned int stateIndex)
 {
     if (back_stack->index < back_stack->max)
     {
 
-        BackState *newState = (BackState *)malloc(sizeof(BackState));
+        struct BackState *newState = (struct BackState *)malloc(sizeof(struct BackState));
         newState->backTrackState = backTrackState;
         newState->consumed = state.consumed;
         newState->index = state.end;
@@ -51,22 +51,22 @@ BackStack *pushBackStack(BackStack *back_stack, BoolState state, unsigned short 
     }
 
     error("Bool stack overflow!", FATAL);
-    return (BackStack *)NULL;
+    return (struct BackStack *)NULL;
 };
 
-BackState *popBackStack(BackStack *back_stack)
+struct BackState *popBackStack(struct BackStack *back_stack)
 {
     if (back_stack->index > 0)
     {
         back_stack->index--;
     }
-    BackState *poppedState = back_stack->states[back_stack->index];
-    back_stack->states[back_stack->index] = (BackState *)NULL;
+    struct BackState *poppedState = back_stack->states[back_stack->index];
+    back_stack->states[back_stack->index] = (struct BackState *)NULL;
     return poppedState;
 }
 
-BackState *backtrack(BackStack *back_stack)
+struct BackState *backtrack(struct BackStack *back_stack)
 {
-    BackState *poppedState = popBackStack(back_stack);
+    struct BackState *poppedState = popBackStack(back_stack);
     return poppedState;
 }

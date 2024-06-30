@@ -29,18 +29,18 @@
 #define MATCHES_ARRAY 512
 #define ASCII_TABLE 256
 
-typedef struct Quantifier
+struct Quantifier
 {
     unsigned short type;
     unsigned short modifier;
     unsigned short min;
     unsigned short max;
-} Quantifier;
+};
 
 // Here, it does not matter if type or data is char and matches is short
 // It will still be aligned by 8 and make 32 bytes
 // So, might as well short and int it up
-typedef struct RE
+struct RE
 {
     unsigned short type;
     unsigned short data;
@@ -48,25 +48,25 @@ typedef struct RE
     struct Quantifier quantifier;
     struct RE **child_stack;
     char *table;
-} RE;
+};
 
 // So, structs addressed (what the struct address refers to) by its first element
 // and are aligned according to the largest member; here, we read 12 bytes since 4 by 3
 // is 12
-typedef struct BoolState
+struct BoolState
 {
     unsigned int consumed;
     unsigned int match;
     unsigned int end;
-} BoolState;
+};
 
-RE **parse(char *re, size_t len);
-BoolState test(RE **stack, char *string, size_t len);
-BoolState *match(RE **stack, char *string, size_t len);
+struct RE **parse(char *re, size_t len);
+struct BoolState test(struct RE **stack, char *string, size_t len);
+struct BoolState *match(struct RE **stack, char *string, size_t len);
 
-void debug(RE **parseStack, int level);
+void debug(struct RE **parseStack, int level);
 
-int feedQuantifier(RE *regular_expression, size_t i, char *re, size_t len);
-int feedLiteral(RE *regular_expression, size_t i, char *re, size_t len);
+int feedQuantifier(struct RE *regular_expression, size_t i, char *re, size_t len);
+int feedLiteral(struct RE *regular_expression, size_t i, char *re, size_t len);
 
 #endif
