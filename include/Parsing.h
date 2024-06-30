@@ -27,6 +27,12 @@
 #define Until 22
 #define For 23
 
+#define DEFAULT_STATE 0
+#define WHITESPACE_STATE 1
+#define QUOTE_STATE 2
+#define SPECIAL_STATE 3
+#define CURLEY_STATE 4
+
 #define DEFAULT_TOKEN_STACK_SIZE 64
 
 struct TokenStack *parseInput(char *buffer);

@@ -1,9 +1,9 @@
 #if !defined(ERROR)
 #define ERROR
 
-#define UNDEFINED 0x00
-#define GENERIC 0x01
-#define FATAL 0x02
+#define UNDEFINED 0x000
+#define GENERIC 0x001
+#define FATAL 0x002
 
 void error(char *message, unsigned int type);
 

@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <Parsing.h>
+#include <Error.h>
 
 const static char *RESERVED_WORDS[] = {
     "if",
@@ -17,8 +18,13 @@ const static char *RESERVED_WORDS[] = {
 
 struct TokenStack *createTokenStack(unsigned int size)
 {
-    struct TokenStack *t_stack = (struct TokenStack *)malloc(sizeof(struct TokenStack) * size);
+    struct TokenStack *t_stack = (struct TokenStack *)malloc(sizeof(struct TokenStack));
     struct Token *array = (struct Token *)malloc(sizeof(struct Token *) * size);
+
+    if (t_stack == (struct TokenStack *) NULL || array == (struct Token *) NULL) 
+    {
+        return (struct TokenStack *) NULL;
+    }
 
     t_stack->index = 0;
     t_stack->max = size;
@@ -30,8 +36,7 @@ struct TokenStack *createTokenStack(unsigned int size)
 struct Token *pushToken(struct TokenStack *stack, struct Token tok)
 {
     if (stack->index >= stack->max)
-        return (struct Token *)NULL;
-    // I'll deal with handling this error later...
+        error("Max tokens exceeded (this probably should not be an issue)!", FATAL);
 
     stack->toks[stack->index].data = tok.data;
     stack->toks[stack->index].id = tok.id;
@@ -50,7 +55,7 @@ struct Token matchToken(char *str)
     return tok;
 }
 
-unsigned int skipSingleQuotes(char *pointer)
+unsigned int processSingleQuotes(char *pointer)
 {
     unsigned int i = 0;
     while (*pointer != '\'' || *pointer != '\0')
@@ -61,20 +66,25 @@ unsigned int skipSingleQuotes(char *pointer)
     return i;
 }
 
+unsigned int processSpecialCharacters(char *pointer)
+{
+    unsigned int i = 0;
+
+}
+
 struct TokenStack *parseInput(char *input)
 {
     if (input == (char *)NULL || input[0] == '\0')
     {
-        exit(EXIT_FAILURE);
+        error("Cannot parse empty input", FATAL);
     }
 
-    struct TokenStack *tokens = (struct TokenStack *)malloc(sizeof(struct TokenStack));
+    struct TokenStack *tokens = createTokenStack(DEFAULT_TOKEN_STACK_SIZE);
 
-    if (tokens == (struct Token *)NULL)
-        goto ENDME;
+    if (tokens == (struct TokenStack *)NULL)
+        error("Unable to allocate token buffer for input parsing", FATAL);
 
     unsigned int i = 0;
-    char c = input[i];
     char *token_addr = &input[i];
     char peek;
 
@@ -82,51 +92,69 @@ struct TokenStack *parseInput(char *input)
     token.id = -1;
     token.data = (char *)NULL;
 
-    while (c != '\0')
+    unsigned char curState = DEFAULT_STATE;
+    unsigned char prevState = DEFAULT_STATE;
+    unsigned char spawnToken = WORD;
+
+    while (input[i] != '\0')
     {
         peek = input[i + 1];
-        switch (c)
+        switch (input[i])
         {
-        case '\'':
-            input[i] = '\0';
-            token = matchToken(token_addr);
-            pushToken(tokens, token);
-            token_addr = &input[i + 1];
-
-            i += skipSingleQuotes(&input[i + 1]);
-            token.id = WORD;
-            token.data = token_addr;
-
-            input[i] = '\0';
-            // token = matchToken(token_addr);
-            pushToken(tokens, token);
-            token_addr = &input[i + 1];
-            break;
         case '<':
         case '>':
         case '!':
         case '=':
-            switch (peek)
-            {
-            case ' ':
-                break;
-            }
+        case '&':
+        case '|':
+            input[i] = '\0';
+            curState = SPECIAL_STATE;
+            spawnToken = WORD;
+            break;
+        case '{':
+            input[i] = '\0';
+            curState = CURLEY_STATE;
+            spawnToken = LBRACE; 
+            break;
+        case '}':
+            input[i] = '\0';
+            curState = CURLEY_STATE;
+            spawnToken = RBRACE;
+            break;
         case ' ':
         case '\r':
         case '\v':
         case '\f':
         case '\t':
             input[i] = '\0';
+            curState = WHITESPACE_STATE;
+            break;
+        default:
+            curState = DEFAULT_STATE;
+            break;
+        }
+
+        if (curState != prevState)
+        {
+            prevState = curState;
+
+            if (curState)
+
             token = matchToken(token_addr);
             pushToken(tokens, token);
             token_addr = &input[i + 1];
-            break;
-        default:
-            break;
+
+            if (spawnToken != WORD) {
+                token.id = spawnToken;
+                token.data = (char *) NULL;
+                pushToken(tokens, token);
+
+                spawnToken = WORD;
+            }
         }
+
         i++;
     }
 
-ENDME:
     return tokens;
 }
