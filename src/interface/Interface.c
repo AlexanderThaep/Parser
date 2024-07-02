@@ -6,17 +6,21 @@
 #include <signal.h>
 
 #include <Interface.h>
+#include <Token.h>
+#include <Error.h>
 
 /* Keep track of attributes of the shell.  */
 
 static pid_t shell_pgid;
 static int shell_terminal;
 static char *currentDirectory;
-struct termios shell_tmodes;
+static struct termios shell_tmodes;
 
 /* A large deal originates from
 https://github.com/jmreyes/simple-c-shell/blob/master/simple-c-shell.c
-https://www.gnu.org/software/libc/manual/html_node/Initializing-the-Shell.html */
+https://www.gnu.org/software/libc/manual/html_node/Initializing-the-Shell.html 
+https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_06_01
+*/
 
 void welcomeScreen()
 {
@@ -51,8 +55,7 @@ void initInterface()
         shell_pgid = getpid();
         if (setpgid(shell_pgid, shell_pgid) < 0)
         {
-            perror("Couldn't put the shell in its own process group");
-            exit(EXIT_FAILURE);
+            error("Couldn't put the shell in its own process group", FATAL);
         }
 
         /* Grab control of the terminal.  */
@@ -61,22 +64,23 @@ void initInterface()
         /* Save default terminal attributes for shell.  */
         tcgetattr(shell_terminal, &shell_tmodes);
 
-        currentDirectory = (char *)calloc(INTERFACE_BUFFER * 4, sizeof(char));
+        currentDirectory = (char *)calloc(INTERFACE_BUFFER_SIZE * 4, sizeof(char));
     }
     shell_pgid = getpid();
 }
 
-char *readFile(char *input_buffer, int actual_buffer_size) 
+char *processFile(char *input_buffer, int actual_buffer_size)
 {
-
 
     return (char *)NULL;
 }
 
-char *readLine(char *input_buffer, int actual_buffer_size)
+char *processTerminal(char *input_buffer, int actual_buffer_size)
 {
-    int index = 0;
-    int c;
+    char *secondary_buffer;
+    unsigned int secondary_size;
+    unsigned int index = 0;
+    char c;
     while (input_buffer != NULL)
     {
         c = getchar();
@@ -84,6 +88,7 @@ char *readLine(char *input_buffer, int actual_buffer_size)
         if (c == EOF || c == '\n')
         {
             input_buffer[index] = '\0';
+            lex(input_buffer);
             return input_buffer;
         }
 
@@ -92,8 +97,16 @@ char *readLine(char *input_buffer, int actual_buffer_size)
 
         if (index >= actual_buffer_size)
         {
-            actual_buffer_size *= 2;
-            input_buffer = realloc(input_buffer, actual_buffer_size);
+            secondary_size = actual_buffer_size * 2;
+            secondary_buffer = realloc(input_buffer, secondary_size);
+            if (secondary_buffer == NULL)
+            {
+                warn("Input lost, unable to realloc buffer!");
+                index = actual_buffer_size - 1;
+                continue;
+            }
+            input_buffer = secondary_buffer;
+            actual_buffer_size = secondary_size;
         }
     }
     return (char *)NULL;
@@ -106,5 +119,5 @@ void prompt()
     // gethostname(hostname, sizeof(hostname));
     // printf("%s@%s %s > ", getenv("LOGNAME"), hostname, getcwd(currentDirectory, INTERFACE_BUFFER * 2));
 
-    printf("%s >", getcwd(currentDirectory, INTERFACE_BUFFER * 2));
+    printf("%s >", getcwd(currentDirectory, INTERFACE_BUFFER_SIZE * 2));
 }

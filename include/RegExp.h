@@ -18,16 +18,12 @@
 #define POSSESSIVE 0x001
 #define LAZY 0x002
 
-#define ASCII_9 58
-#define ASCII_0 48
-#define ASCII_COMMA 44
-#define ASCII_FSLASH 92
-#define ASCII_DASH 45
-#define ASCII_CARET 94
-
 #define DEFAULT_STACK_SIZE 64
-#define MATCHES_ARRAY 512
 #define ASCII_TABLE 256
+#define MATCHES_ARRAY 512
+#define BOOLSTACK_SIZE 512
+
+// Sigh... Nobody told me about enums
 
 struct Quantifier
 {
@@ -68,5 +64,30 @@ void debug(struct RE **parseStack, int level);
 
 int feedQuantifier(struct RE *regular_expression, size_t i, char *re, size_t len);
 int feedLiteral(struct RE *regular_expression, size_t i, char *re, size_t len);
+
+// Formerly Backtracking.h
+
+struct BackState
+{
+    unsigned int index;
+    unsigned int stateIndex;
+    unsigned short consumed;
+    unsigned short backTrackState;
+};
+// I leave some structures with shorts since the struct stays the same size anyways
+// http://www.catb.org/esr/structure-packing/
+
+struct BackStack
+{
+    unsigned int index;
+    unsigned int max;
+    struct BackState **states;
+};
+
+struct BackStack *createBackStack();
+void resetBackStack(struct BackStack *stack);
+struct BackStack *pushBackStack(struct BackStack *back_stack, struct BoolState state, unsigned short backTrackState, unsigned int stateIndex);
+struct BackState *popBackStack(struct BackStack *back_stack);
+struct BackState *backtrack(struct BackStack *back_stack);
 
 #endif

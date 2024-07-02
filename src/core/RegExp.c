@@ -3,6 +3,8 @@
 #include <RegExp.h>
 #include <Error.h>
 
+// I am not const'ing everything
+
 struct RE *createRegularExpression(int type, int quantifier, char data)
 {
     struct RE *regular_expression = (struct RE *)malloc(sizeof(struct RE));
@@ -28,6 +30,7 @@ struct RE *createRegularExpression(int type, int quantifier, char data)
 
 struct RE **createParseStack(int size)
 {
+    //Look, I cast my mallocs; learned it from an old embedded guy
     struct RE **parse_stack = (struct RE **)malloc(sizeof(struct RE *) * size);
     if (parse_stack == (struct RE **)NULL || size < 1)
     {
@@ -53,7 +56,10 @@ struct RE *pushStack(struct RE **stack, struct RE *regular_expression)
     // i.e max elements, current index, works fine. In hindsight,
     // I should have wrapped it in a struct
     int index = stack[0]->type;
-
+    // Refactoring is simply too much
+    // I'd rather rewrite with these lessons in mind
+    // The data field contains the max size (DEFAULT_STACK_SIZE) of the regular expression stack
+    // Do not admonish me for the passions of youth
     if (index >= stack[0]->data)
     {
         error("Stack overflow!", FATAL);
@@ -206,7 +212,7 @@ struct RE **parse(char *re, size_t len)
                 error("Bracketed quantifier has to follow an exactly one", FATAL);
             }
 
-            i = feedQuantifier(lastRE, i, re, len);
+            i = feedQuantifier(lastRE, i + 1, re, len);
             break;
         case '[':
             regular_expression = createRegularExpression(LITERAL_GROUP, EXACTLY_ONE, re[i]);

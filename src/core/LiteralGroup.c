@@ -3,7 +3,7 @@
 #include <string.h>
 #include <RegExp.h>
 
-void activateLiteral(char *table, char literal, char last, int *addr_active_ranging)
+static void activateLiteral(char *table, char literal, char last, int *addr_active_ranging)
 {
     int index = (int)literal;
     if ((*addr_active_ranging) == 1)
@@ -46,12 +46,12 @@ int feedLiteral(struct RE *regular_expression, size_t i, char *re, size_t len)
         {
             switch (re[i])
             {
-            case ASCII_FSLASH:
+            case '\\':
                 activateLiteral(table, re[++i], last, &active_ranging);
                 last = re[i];
                 i++;
                 continue;
-            case ASCII_DASH:
+            case '-':
                 active_ranging = 1;
                 i++;
                 continue;

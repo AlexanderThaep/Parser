@@ -6,5 +6,6 @@
 #define FATAL 0x002
 
 void error(char *message, unsigned int type);
+void warn(char *message);
 
 #endif

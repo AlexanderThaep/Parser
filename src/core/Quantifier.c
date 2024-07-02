@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <RegExp.h>
+#include <Error.h>
 
 int feedQuantifier(struct RE *regular_expression, size_t i, char *re, size_t len)
 {
@@ -14,8 +15,18 @@ int feedQuantifier(struct RE *regular_expression, size_t i, char *re, size_t len
 
     while (i < len)
     {
-        if (re[i] <= ASCII_9 && re[i] >= ASCII_0)
+        switch (re[i]) 
         {
+        case '9':
+        case '8':
+        case '7':
+        case '6':
+        case '5':
+        case '4':
+        case '3':
+        case '2':
+        case '1':
+        case '0':
             (*place) = ((*place) * 10) + (re[i] - 48);
             if (place == &min)
             {
@@ -25,13 +36,14 @@ int feedQuantifier(struct RE *regular_expression, size_t i, char *re, size_t len
             {
                 accessedMax = 1;
             }
-        }
-        else if (re[i] == ASCII_COMMA)
-        {
+            break;
+        case ',':
             place = &max;
-        }
-        else if (re[i] == '}')
-        {
+            break;
+        case '}':
+            break;
+        default:
+            error("Symbol not allowed within {}", FATAL);
             break;
         }
         i++;
@@ -49,6 +61,11 @@ int feedQuantifier(struct RE *regular_expression, size_t i, char *re, size_t len
     {
         max = min;
     }
+
+    // Funnily enough, by standards, using {} actually makes sense
+    // for it to match between LARGE_NUMBER and 0
+    // Another reason to not use regex
+    printf("Max: %d // Min: %d\n", max, min);
 
     regular_expression->quantifier.type = RANGE;
     regular_expression->quantifier.max = max;

@@ -15,3 +15,8 @@ void error(char *message, unsigned int type)
     fprintf(stderr, "[ERROR] %s :::: [TYPE] %s\n", message, ERRORS[type]);
     exit(EXIT_FAILURE);
 }
+
+void warn(char *message) {
+    fprintf(stderr, "[WARNING] %s\n", message);
+    fflush(stdout);
+}

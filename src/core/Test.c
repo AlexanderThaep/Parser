@@ -1,10 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <RegExp.h>
-#include <Backtracking.h>
 #include <Error.h>
 
-struct BoolState stateMatchesStringAtIndex(struct RE *state, char *string, size_t len, int i)
+static struct BoolState stateMatchesStringAtIndex(struct RE *state, char *string, size_t len, int i)
 {
     struct BoolState returnState;
     returnState.consumed = 0;

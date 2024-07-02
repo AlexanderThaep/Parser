@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <RegExp.h>
-#include <Backtracking.h>
 #include <Error.h>
 
 struct BackStack *createBackStack()
