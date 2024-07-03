@@ -27,7 +27,7 @@ void welcomeScreen()
     printf("\n\t============================================\n");
     printf("\t               RexEngine Shell\n");
     printf("\t--------------------------------------------\n");
-    printf("\t             Licensed under DeezNuts\n");
+    printf("\t             Licensed under GPLv3\n");
     printf("\t============================================\n");
     printf("\n\n");
 }
@@ -72,7 +72,7 @@ void initInterface()
 char *processFile(char *input_buffer, int actual_buffer_size)
 {
 
-    return (char *)NULL;
+    return NULL;
 }
 
 char *processTerminal(char *input_buffer, int actual_buffer_size)
@@ -109,7 +109,7 @@ char *processTerminal(char *input_buffer, int actual_buffer_size)
             actual_buffer_size = secondary_size;
         }
     }
-    return (char *)NULL;
+    return NULL;
 }
 
 void prompt()

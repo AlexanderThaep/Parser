@@ -10,13 +10,13 @@ const static char *RESERVED_WORDS[] = {
 };
 
 // Shamelessly lifted from https://github.com/rui314/chibicc/blob/main/tokenize.c#L114
-static bool startsWith(char *word, char *sequence)
+static inline bool startsWith(char *word, char *sequence)
 {
     return strncmp(word, sequence, strlen(sequence)) == 0;
 } 
 
 // Please unroll me, compiler!
-static char *inc(char *input)
+static inline char *inc(char *input)
 {
     if (startsWith(input, "\\\n")) {
         return input + 2;
@@ -51,7 +51,7 @@ static size_t appendToTokenWithBuffer(struct Token *tok, char c)
     if (len >= tok->span)
     {
         char *temp = realloc(tok->begin, tok->span * 2);
-        if (temp == (char *) NULL)
+        if (temp == NULL)
         {
             error("Cannot realloc token buffer", FATAL);
         }
@@ -64,9 +64,9 @@ static size_t appendToTokenWithBuffer(struct Token *tok, char c)
 
 static struct Token *createTokenWithBuffer(unsigned int size)
 {
-    struct Token *tok = (struct Token *) calloc(sizeof(char), sizeof(struct Token));
-    char *buffer = (char *) malloc(sizeof(char) * size);
-    if (buffer == (char *) NULL || tok == (struct Token *) NULL)
+    struct Token *tok = calloc(sizeof(char), sizeof(*tok));
+    char *buffer = malloc(sizeof(char) * size);
+    if (buffer == NULL || tok == NULL)
     {
         error("Could not allocate new token with buffer", FATAL);
     }
@@ -110,7 +110,7 @@ static struct Token *processWord(char **input)
             return tok;
         case '\\':
             (*input)++;
-            char c = escapedToLiteral(**input);
+            char c = escapedToLiteral(*input);
             appendToTokenWithBuffer(tok, c);
             break;
         default:
@@ -186,7 +186,7 @@ static struct Token *processDoubleQuotes(char **input) {
 }
 
 static struct Token *processSingleQuotes(char **input) {
-    struct Token *tok = (struct Token *) malloc(sizeof(struct Token));
+    struct Token *tok = malloc(sizeof(*tok));
     tok->begin = *input;
     tok->id = WORD;
 
@@ -210,7 +210,7 @@ static struct Token *processSingleQuotes(char **input) {
 
 struct Token *lex(char *input)
 {
-    if (input == (char *)NULL || *input == '\0')
+    if (input == NULL || *input == '\0')
     {
         error("Cannot parse empty input", FATAL);
     }
@@ -223,16 +223,14 @@ struct Token *lex(char *input)
         switch (*input)
         {
         case '#':
-            while (*input != '\n' && *input != '\0')
-            {
-                input++;
-            }
+            // C taste
+            for (*input; *input != '\n' && *input != '\0'; input++);
             continue;
         case '/':
             if (startsWith(input, "/*"))
             {
                 char *closer = strstr(input + 2, "*/");
-                if (closer == (char *) NULL) 
+                if (closer == NULL) 
                 {
                     error("Unclosed multiline comment somewhere", FATAL);
                 }
@@ -258,13 +256,14 @@ struct Token *lex(char *input)
             input = inc(input);
             continue;
         case '\n':
+            {
             struct Token *newln = createTokenWithBuffer(1);
             newln->begin = input;
             newln->span = 0;
             newln->id = NEWLINE;
-
             tok->next = newln;
             tok = tok->next;
+            }
         case '\r':
         case '\v':
         case '\f':
