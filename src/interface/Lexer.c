@@ -224,7 +224,7 @@ struct Token *lex(char *input)
         {
         case '#':
             // C taste
-            for (*input; *input != '\n' && *input != '\0'; input++);
+            for (; *input != '\n' && *input != '\0'; input++);
             continue;
         case '/':
             if (startsWith(input, "/*"))
